@@ -13,6 +13,7 @@ Hello-Scan-Code 是一个专为大型代码仓库设计的高效搜索工具。�
 7. **多关键字搜索**：支持同时搜索多个关键字，用逗号分隔
 8. **面向对象设计**：采用模块化、面向对象的架构，易于扩展和维护
 9. **灵活配置**：支持通过直接修改配置参数来自定义搜索行为
+10. **设计模式**：采用多种经典设计模式，提高代码质量和可维护性
 
 ## 项目结构
 
@@ -20,17 +21,52 @@ Hello-Scan-Code 是一个专为大型代码仓库设计的高效搜索工具。�
 hello-scan-code/
 ├── src/
 │   ├── __init__.py
-│   ├── config.py        # 配置文件解析
-│   ├── code_searcher.py # 核心搜索器类
-│   ├── searcher.py      # 搜索引擎实现
-│   ├── database.py      # 数据库操作
-│   ├── exporter.py      # Excel 导出逻辑
-│   ├── logger_config.py # loguru 配置
-│   └── main.py          # 主程序入口
-├── pyproject.toml       # 项目配置和依赖
-├── README.md            # 使用说明
-└── main.py              # 根目录入口文件
+│   ├── config.py           # 配置文件解析
+│   ├── logger_config.py    # 日志配置
+│   ├── strategies.py       # 搜索策略接口和实现（策略模式）
+│   ├── search_factory.py   # 搜索策略工厂（工厂模式）
+│   ├── search_template.py  # 搜索模板方法（模板方法模式）
+│   ├── validators.py       # 结果验证器（装饰器模式）
+│   ├── searcher.py         # 搜索引擎实现
+│   ├── database.py         # 数据库操作
+│   ├── exporter.py         # Excel 导出逻辑
+│   ├── code_searcher.py    # 核心搜索器类
+│   └── main.py             # 主程序入口
+├── pyproject.toml          # 项目配置和依赖
+├── README.md               # 使用说明
+└── main.py                 # 根目录入口文件
 ```
+
+## 设计模式应用
+
+本项目采用了多种经典设计模式来提高代码质量和可维护性：
+
+### 1. 策略模式 (Strategy Pattern)
+- **应用场景**：不同的搜索算法实现
+- **实现文件**：[strategies.py](file:///e:/GitHub/Hello-Scan-Code/src/strategies.py)
+- **具体策略**：
+  - `GrepSearchStrategy`：使用系统 grep 命令进行搜索
+  - `PythonSearchStrategy`：使用纯 Python 实现搜索
+
+### 2. 工厂模式 (Factory Pattern)
+- **应用场景**：创建不同的搜索策略
+- **实现文件**：[search_factory.py](file:///e:/GitHub/Hello-Scan-Code/src/search_factory.py)
+- **功能**：根据配置创建相应的搜索策略实例
+
+### 3. 模板方法模式 (Template Method Pattern)
+- **应用场景**：定义搜索流程的通用结构
+- **实现文件**：[search_template.py](file:///e:/GitHub/Hello-Scan-Code/src/search_template.py)
+- **功能**：定义搜索的通用流程，子类可以重写特定步骤
+
+### 4. 装饰器模式 (Decorator Pattern)
+- **应用场景**：结果验证功能
+- **实现文件**：[validators.py](file:///e:/GitHub/Hello-Scan-Code/src/validators.py)
+- **功能**：提供可扩展的结果验证功能
+
+### 5. 单例模式 (Singleton Pattern)
+- **应用场景**：日志管理器
+- **实现文件**：[logger_config.py](file:///e:/GitHub/Hello-Scan-Code/src/logger_config.py)
+- **功能**：确保全局只有一个日志管理器实例
 
 ## 项目初始化
 
@@ -97,7 +133,7 @@ class SearchConfig:
 
 #### 方式二：在主程序中直接修改
 
-编辑 [src/main.py](file:///e:/GitHub/Hello-Scan-Code/src/main.py) 文件，在 [main()](file:///e:/GitHub/Hello-Scan-Code/src/main.py#L12-L38) 函数中直接修改配置参数：
+编辑 [src/main.py](file:///e:/GitHub/Hello-Scan-Code/src/main.py) 文件，在 [main()](file:///e:/GitHub/Hello-Scan-Code/src/main.py#L15-L45) 函数中直接修改配置参数：
 
 ```python
 def main():
@@ -181,11 +217,12 @@ config.log_level = "DEBUG"
 ## 技术实现
 
 1. **面向对象架构**：采用模块化、面向对象的设计，功能聚合，提高可读性和可维护性
-2. **初步搜索**：使用系统 `grep` 命令快速扫描整个代码仓库
-3. **二次校验**：使用 Python 对初步筛选出的文件进行精确匹配
-4. **并发处理**：使用 `concurrent.futures.ProcessPoolExecutor` 实现多进程并行处理
-5. **编码处理**：尝试多种常见编码以确保兼容性
-6. **数据存储**：使用 `sqlite3` 和 `pandas` 分别存储和导出结果
+2. **设计模式**：采用多种经典设计模式，提高代码质量和可扩展性
+3. **初步搜索**：使用系统 `grep` 命令快速扫描整个代码仓库
+4. **二次校验**：使用 Python 对初步筛选出的文件进行精确匹配
+5. **并发处理**：使用 `concurrent.futures.ProcessPoolExecutor` 实现多进程并行处理
+6. **编码处理**：尝试多种常见编码以确保兼容性
+7. **数据存储**：使用 `sqlite3` 和 `pandas` 分别存储和导出结果
 
 ## 性能优化
 
