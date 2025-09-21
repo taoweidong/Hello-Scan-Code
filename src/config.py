@@ -1,5 +1,5 @@
 import argparse
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, List
 import os
 
@@ -14,18 +14,9 @@ class SearchConfig:
     excel_path: str = "report/results.xlsx"
     log_level: str = "INFO"
     # 默认忽略的目录
-    ignore_dirs: List[str] = None
-    # 默认搜索的文件后缀
-    file_extensions: List[str] = None
-    
-    def __post_init__(self):
-        # 设置默认忽略目录
-        if self.ignore_dirs is None:
-            self.ignore_dirs = [".git", "__pycache__", ".svn", ".hg", ".idea", ".vscode", "node_modules", ".tox"]
-        
-        # 设置默认文件后缀（None表示不限制）
-        if self.file_extensions is None:
-            self.file_extensions = None  # 不限制文件类型
+    ignore_dirs: List[str] = field(default_factory=lambda: [".git", "__pycache__", ".svn", ".hg", ".idea", ".vscode", "node_modules", ".tox"])
+    # 默认搜索的文件后缀（None表示不限制）
+    file_extensions: Optional[List[str]] = None
 
 def parse_args() -> SearchConfig:
     """

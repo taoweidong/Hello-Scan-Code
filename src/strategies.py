@@ -8,15 +8,25 @@ import subprocess
 import re
 import os
 import glob
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
 from .logger_config import get_logger
+from .config import SearchConfig
 
 logger = get_logger()
 
 
 class SearchStrategy(ABC):
     """搜索策略抽象基类"""
+    
+    def __init__(self, config: Optional[SearchConfig] = None):
+        """
+        初始化搜索策略
+        
+        Args:
+            config: 搜索配置对象
+        """
+        self.config = config or SearchConfig()
     
     @abstractmethod
     def search(self, repo_path: str, search_terms: List[str] | str, is_regex: bool = False) -> List[Dict[str, Any]]:
@@ -32,6 +42,33 @@ class SearchStrategy(ABC):
             搜索结果列表
         """
         pass
+    
+    def _should_ignore_file(self, file_path: str) -> bool:
+        """
+        判断是否应该忽略该文件
+        
+        Args:
+            file_path: 文件路径
+            
+        Returns:
+            是否应该忽略该文件
+        """
+        # 检查是否在忽略目录中
+        if self.config.ignore_dirs:
+            for ignore_dir in self.config.ignore_dirs:
+                if ignore_dir in file_path:
+                    return True
+        
+        # 检查文件后缀
+        if self.config.file_extensions is not None:
+            # 获取文件扩展名
+            _, ext = os.path.splitext(file_path)
+            if ext and ext not in self.config.file_extensions:
+                # 如果有扩展名但不在允许列表中，则忽略
+                if self.config.file_extensions:  # 只有当允许列表不为空时才应用限制
+                    return True
+        
+        return False
 
 
 class GrepSearchStrategy(SearchStrategy):
@@ -57,6 +94,17 @@ class GrepSearchStrategy(SearchStrategy):
                     cmd.append("-E")
                 cmd.extend([search_term, repo_path])
                 
+                # 添加grep的排除目录选项
+                if self.config.ignore_dirs:
+                    for ignore_dir in self.config.ignore_dirs:
+                        cmd.extend(["--exclude-dir", ignore_dir])
+                
+                # 如果指定了文件后缀，添加文件类型过滤
+                if self.config.file_extensions is not None and self.config.file_extensions:
+                    patterns = ["*" + ext if not ext.startswith(".") else "*" + ext for ext in self.config.file_extensions]
+                    for pattern in patterns:
+                        cmd.extend(["--include", pattern])
+                
                 logger.info(f"执行grep命令: {' '.join(cmd)}")
                 result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
                 
@@ -72,13 +120,15 @@ class GrepSearchStrategy(SearchStrategy):
                             parts = line.split(':', 2)  # 最多分割成3部分
                             if len(parts) >= 3:
                                 file_path, line_number, matched_content = parts[0], parts[1], parts[2]
-                                if file_path not in file_matches:
-                                    file_matches[file_path] = []
-                                file_matches[file_path].append({
-                                    'line_number': line_number,
-                                    'content': matched_content,
-                                    'search_term': search_term  # 记录是哪个搜索词匹配的
-                                })
+                                # 检查是否应该忽略该文件
+                                if not self._should_ignore_file(file_path):
+                                    if file_path not in file_matches:
+                                        file_matches[file_path] = []
+                                    file_matches[file_path].append({
+                                        'line_number': line_number,
+                                        'content': matched_content,
+                                        'search_term': search_term  # 记录是哪个搜索词匹配的
+                                    })
                     
                     # 转换为列表格式
                     result_list = []
@@ -100,7 +150,7 @@ class GrepSearchStrategy(SearchStrategy):
             except FileNotFoundError:
                 logger.warning("未找到grep命令，将使用纯Python实现搜索")
                 # 如果grep不可用，使用纯Python实现，并跳出循环避免重复执行
-                return PythonSearchStrategy().search(repo_path, search_terms, is_regex)
+                return PythonSearchStrategy(self.config).search(repo_path, search_terms, is_regex)
             except Exception as e:
                 logger.warning(f"执行grep搜索 '{search_term}' 时出错: {e}")
         
@@ -138,6 +188,10 @@ class PythonSearchStrategy(SearchStrategy):
         # 递归搜索所有文件
         for file_path in glob.glob(os.path.join(repo_path, '**/*'), recursive=True):
             if os.path.isfile(file_path):
+                # 检查是否应该忽略该文件
+                if self._should_ignore_file(file_path):
+                    continue
+                
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         lines = f.readlines()

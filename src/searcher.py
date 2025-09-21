@@ -157,6 +157,10 @@ class SearchEngine:
         # 递归搜索所有文件
         for file_path in glob.glob(os.path.join(repo_path, '**/*'), recursive=True):
             if os.path.isfile(file_path):
+                # 检查是否应该忽略该文件
+                if self._should_ignore_file(file_path):
+                    continue
+                    
                 try:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         lines = f.readlines()
@@ -196,6 +200,36 @@ class SearchEngine:
         
         logger.info(f"Python搜索找到 {len(result_list)} 个匹配文件，共 {sum(len(item['matches']) for item in result_list)} 个匹配行")
         return result_list
+    
+    def _should_ignore_file(self, file_path: str) -> bool:
+        """
+        判断是否应该忽略该文件
+        
+        Args:
+            file_path: 文件路径
+            
+        Returns:
+            是否应该忽略该文件
+        """
+        from .config import SearchConfig
+        config = SearchConfig()  # 使用默认配置
+        
+        # 检查是否在忽略目录中
+        if config.ignore_dirs:
+            for ignore_dir in config.ignore_dirs:
+                if ignore_dir in file_path:
+                    return True
+        
+        # 检查文件后缀
+        if config.file_extensions is not None:
+            # 获取文件扩展名
+            _, ext = os.path.splitext(file_path)
+            if ext and ext not in config.file_extensions:
+                # 如果有扩展名但不在允许列表中，则忽略
+                if config.file_extensions:  # 只有当允许列表不为空时才应用限制
+                    return True
+        
+        return False
     
     def parallel_validate(self, file_results: List[Dict[str, Any]], search_terms: list[str] | str, is_regex: bool, max_workers: int = 4) -> List[Dict[str, Any]]:
         """

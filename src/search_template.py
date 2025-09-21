@@ -5,6 +5,7 @@
 """
 
 from abc import ABC, abstractmethod
+import os
 from typing import List, Dict, Any
 from .config import SearchConfig
 from .strategies import SearchStrategy
@@ -36,6 +37,11 @@ class SearchTemplate(ABC):
         """
         logger.info(f"开始搜索: {self.config.search_term}")
         logger.info(f"仓库路径: {self.config.repo_path}")
+        
+        # 计算待分析文件个数
+        file_count = self._count_files()
+        logger.info(f"待分析文件个数: {file_count}")
+        
         logger.info(f"是否正则表达式: {self.config.is_regex}")
         
         # 解析搜索词
@@ -63,6 +69,57 @@ class SearchTemplate(ABC):
             logger.info(f"二次校验后找到 {len(matched_results)} 个匹配文件，共 {total_matches} 个匹配行")
         
         return matched_results
+    
+    def _count_files(self) -> int:
+        """
+        计算待分析的文件数量
+        
+        Returns:
+            文件数量
+        """
+        import glob
+        
+        file_count = 0
+        
+        # 递归遍历所有文件
+        for file_path in glob.glob(os.path.join(self.config.repo_path, '**/*'), recursive=True):
+            if os.path.isfile(file_path):
+                # 检查是否应该忽略该文件
+                if not self._should_ignore_file(file_path):
+                    file_count += 1
+        
+        return file_count
+    
+    def _should_ignore_file(self, file_path: str) -> bool:
+        """
+        判断是否应该忽略该文件
+        
+        Args:
+            file_path: 文件路径
+            
+        Returns:
+            是否应该忽略该文件
+        """
+        # 检查是否在忽略目录中
+        if self.config.ignore_dirs:
+            for ignore_dir in self.config.ignore_dirs:
+                # 检查文件路径中是否包含忽略目录
+                if os.path.sep + ignore_dir + os.path.sep in file_path or file_path.endswith(os.path.sep + ignore_dir):
+                    return True
+                # 也检查根目录下的忽略目录
+                if file_path.startswith(ignore_dir + os.path.sep):
+                    return True
+        
+        # 检查文件后缀
+        if self.config.file_extensions is not None:
+            # 获取文件扩展名
+            _, ext = os.path.splitext(file_path)
+            if ext and ext not in self.config.file_extensions:
+                # 如果有扩展名但不在允许列表中，则忽略
+                if self.config.file_extensions:  # 只有当允许列表不为空时才应用限制
+                    return True
+        
+        return False
     
     def _parse_search_terms(self) -> List[str] | str:
         """
@@ -130,4 +187,4 @@ class DefaultSearchTemplate(SearchTemplate):
         """
         创建默认搜索策略
         """
-        return SearchStrategyFactory.create_default_strategy()
+        return SearchStrategyFactory.create_default_strategy(self.config)

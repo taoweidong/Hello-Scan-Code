@@ -13,7 +13,8 @@ Hello-Scan-Code 是一个专为大型代码仓库设计的高效搜索工具。�
 7. **多关键字搜索**：支持同时搜索多个关键字，用逗号分隔
 8. **面向对象设计**：采用模块化、面向对象的架构，易于扩展和维护
 9. **灵活配置**：支持通过直接修改配置参数来自定义搜索行为
-10. **设计模式**：采用多种经典设计模式，提高代码质量和可维护性
+10. **目录和文件过滤**：支持配置忽略目录和指定文件后缀
+11. **设计模式**：采用多种经典设计模式，提高代码质量和可维护性
 
 ## 项目结构
 
@@ -116,7 +117,7 @@ mkdir -p db report logs
 
 #### 方式一：修改配置文件
 
-编辑 [src/config.py](file:///e:/GitHub/Hello-Scan-Code/src/config.py) 文件，修改 [SearchConfig](file:///e:/GitHub/Hello-Scan-Code/src/config.py#L8-L17) 类中的默认值：
+编辑 [src/config.py](file:///e:/GitHub/Hello-Scan-Code/src/config.py) 文件，修改 [SearchConfig](file:///e:/GitHub/Hello-Scan-Code/src/config.py#L11-L22) 类中的默认值：
 
 ```python
 @dataclass
@@ -129,11 +130,15 @@ class SearchConfig:
     db_path: str = "db/results.db"
     excel_path: str = "report/results.xlsx"
     log_level: str = "INFO"
+    # 默认忽略的目录
+    ignore_dirs: List[str] = field(default_factory=lambda: [".git", "__pycache__", ".svn", ".hg", ".idea", ".vscode", "node_modules", ".tox"])
+    # 默认搜索的文件后缀（None表示不限制）
+    file_extensions: Optional[List[str]] = None
 ```
 
 #### 方式二：在主程序中直接修改
 
-编辑 [src/main.py](file:///e:/GitHub/Hello-Scan-Code/src/main.py) 文件，在 [main()](file:///e:/GitHub/Hello-Scan-Code/src/main.py#L15-L45) 函数中直接修改配置参数：
+编辑 [src/main.py](file:///e:/GitHub/Hello-Scan-Code/src/main.py) 文件，在 [main()](file:///e:/GitHub/Hello-Scan-Code/src/main.py#L18-L53) 函数中直接修改配置参数：
 
 ```python
 def main():
@@ -150,6 +155,10 @@ def main():
         config.db_path = "db/results.db"
         config.excel_path = "report/results.xlsx"
         config.log_level = "INFO"
+        # 配置忽略目录
+        config.ignore_dirs = [".git", "node_modules", "__pycache__"]
+        # 配置只搜索特定后缀的文件
+        config.file_extensions = [".py", ".js", ".ts", ".jsx", ".tsx"]
         
         # ... 其余代码保持不变
 ```
@@ -193,18 +202,24 @@ config.validate_workers = 8
 config.db_path = "custom/path/results.db"
 config.excel_path = "custom/path/results.xlsx"
 config.log_level = "DEBUG"
+# 配置忽略目录
+config.ignore_dirs = [".git", "node_modules", "__pycache__", "dist", "build"]
+# 配置只搜索特定后缀的文件
+config.file_extensions = [".py", ".js", ".html", ".css"]
 ```
 
 ### 配置参数说明
 
-- `repo_path`：代码仓库路径，默认为 "/root/openstack"
-- `search_term`：要搜索的字符串或正则表达式，多个关键字用逗号分隔，默认为 "test,helo,pwd"
+- `repo_path`：代码仓库路径，默认为 "/root/CodeRootPath"
+- `search_term`：要搜索的字符串或正则表达式，多个关键字用逗号分隔，默认为 "test,def,void"
 - `is_regex`：是否使用正则表达式搜索，默认为 False
 - `validate`：是否启用二次校验，默认为 False
 - `validate_workers`：二次校验的并发工作进程数，默认为 4
 - `db_path`：SQLite数据库输出路径，默认为 "db/results.db"
 - `excel_path`：Excel文件输出路径，默认为 "report/results.xlsx"
 - `log_level`：日志级别（DEBUG, INFO, WARNING, ERROR），默认为 "INFO"
+- `ignore_dirs`：要忽略的目录列表，默认为 [".git", "__pycache__", ".svn", ".hg", ".idea", ".vscode", "node_modules", ".tox"]
+- `file_extensions`：要搜索的文件后缀列表，None表示不限制，默认为 None
 
 ## 输出结果
 
@@ -223,6 +238,7 @@ config.log_level = "DEBUG"
 5. **并发处理**：使用 `concurrent.futures.ProcessPoolExecutor` 实现多进程并行处理
 6. **编码处理**：尝试多种常见编码以确保兼容性
 7. **数据存储**：使用 `sqlite3` 和 `pandas` 分别存储和导出结果
+8. **目录和文件过滤**：支持配置忽略目录和指定文件后缀，提高搜索效率
 
 ## 性能优化
 
@@ -230,6 +246,7 @@ config.log_level = "DEBUG"
 - 多进程并发处理提高二次校验效率
 - 智能编码检测避免因单个文件编码问题导致程序崩溃
 - 合理的日志记录级别控制，避免影响性能
+- 支持忽略目录和文件后缀过滤，减少不必要的文件搜索
 
 ## 依赖说明
 
