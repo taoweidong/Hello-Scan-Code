@@ -29,7 +29,8 @@ class CodeSearcher:
         self.config = config
         self.search_template = DefaultSearchTemplate(config)
         self.db_manager = DatabaseManager(config.db_path)
-        self.excel_exporter = ExcelExporter(config.excel_path)
+        # 为Excel导出器设置最大行数限制，避免Excel文件过大
+        self.excel_exporter = ExcelExporter(config.excel_path, max_rows_per_file=100000)
         
         # 检查仓库路径是否存在
         if not os.path.exists(config.repo_path):
