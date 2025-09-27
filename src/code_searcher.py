@@ -7,8 +7,7 @@
 import os
 import sys
 from typing import List, Dict, Any
-from .logger_config import get_logger
-from .config import SearchConfig
+from .config import get_logger, AppConfig
 from .search_template import DefaultSearchTemplate
 from .database import DatabaseManager
 from .exporter import ExcelExporter

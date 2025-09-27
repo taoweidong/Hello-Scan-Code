@@ -9,7 +9,7 @@ from typing import Optional
 from sqlalchemy import create_engine, Engine, event
 from sqlalchemy.pool import StaticPool
 from .database_config import DatabaseConfig
-from ..logger_config import get_logger
+from src.config import get_logger
 
 logger = get_logger()
 

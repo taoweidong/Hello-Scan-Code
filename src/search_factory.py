@@ -6,8 +6,7 @@
 
 from typing import Optional
 from .strategies import SearchStrategy, GrepSearchStrategy, PythonSearchStrategy
-from .config import SearchConfig
-from .logger_config import get_logger
+from .config import AppConfig, get_logger
 
 logger = get_logger()
 

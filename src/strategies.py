@@ -10,8 +10,7 @@ import os
 import glob
 from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
-from .logger_config import get_logger
-from .config import SearchConfig
+from .config import get_logger, AppConfig
 
 logger = get_logger()
 

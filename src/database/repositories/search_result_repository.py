@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct, desc, and_, or_
 from .base_repository import BaseRepository
 from ..models.search_result import SearchResultModel
-from ..logger_config import get_logger
+from src.config import get_logger
 
 logger = get_logger()
 

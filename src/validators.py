@@ -6,7 +6,7 @@
 
 from typing import List, Dict, Any
 from abc import ABC, abstractmethod
-from .logger_config import get_logger
+from .config import get_logger
 
 logger = get_logger()
 
