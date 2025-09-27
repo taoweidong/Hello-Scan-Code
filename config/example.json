@@ -1,0 +1,42 @@
+{
+  "_comment": "Hello-Scan-Code 示例配置文件",
+  "_description": "此文件展示了各种配置选项的使用方法",
+  
+  "repo_path": ".",
+  "search_term": "TODO,FIXME,BUG,HACK",
+  "is_regex": false,
+  "validate": true,
+  "validate_workers": 4,
+  
+  "output": {
+    "db_path": "code_analysis.db",
+    "excel_path": "code_analysis_report.xlsx"
+  },
+  
+  "logging": {
+    "level": "INFO"
+  },
+  
+  "filters": {
+    "ignore_dirs": [
+      ".git",
+      "__pycache__",
+      "node_modules", 
+      "dist",
+      "build",
+      ".vscode",
+      ".idea",
+      ".pytest_cache",
+      ".tox"
+    ],
+    "file_extensions": [
+      ".py",
+      ".js", 
+      ".ts",
+      ".java",
+      ".cpp",
+      ".c",
+      ".h"
+    ]
+  }
+}
