@@ -1,7 +1,7 @@
 """
 配置管理器
 
-提供统一的配置管理接口，集中管理所有配置类
+提供统一的配置管理接口，集中管理所有配置类，支持JSON配置文件
 """
 
 from typing import Optional, Dict, Any, TypeVar, Type
@@ -9,6 +9,7 @@ from .base_config import BaseConfig
 from .app_config import AppConfig
 from .logger_config import LoggerConfig, setup_logger
 from .database_config import DatabaseConfig
+from .json_config_loader import load_config_from_json, get_json_loader
 
 T = TypeVar('T', bound=BaseConfig)
 
@@ -41,7 +42,7 @@ class ConfigManager:
     
     def get_config(self, config_class: Type[T]) -> T:
         """
-        获取配置实例
+        获取配置实例，支持JSON配置文件加载
         
         Args:
             config_class: 配置类
@@ -53,7 +54,12 @@ class ConfigManager:
         
         if config_name not in self._configs:
             config_instance = config_class()
+            
+            # 先从环境变量加载
             config_instance.load_from_env()
+            
+            # 再从JSON文件加载（优先级更高）
+            config_instance = load_config_from_json(config_instance)
             
             if not config_instance.validate():
                 raise ValueError(f"配置验证失败: {config_name}")
@@ -103,6 +109,16 @@ class ConfigManager:
             self.initialize()
             
         return all(config.validate() for config in self._configs.values())
+
+    def create_config_template(self) -> None:
+        """创建配置模板文件"""
+        loader = get_json_loader()
+        loader.save_config_template()
+    
+    def get_config_info(self) -> Dict[str, Any]:
+        """获取配置文件信息"""
+        loader = get_json_loader()
+        return loader.get_config_info()
 
 
 # 全局配置管理器实例
