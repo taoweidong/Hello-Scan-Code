@@ -7,4 +7,6 @@ dependencies = [
     "loguru>=0.7.0",
     "pandas>=1.5.0",
     "openpyxl>=3.0.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.8.0",
 ]
