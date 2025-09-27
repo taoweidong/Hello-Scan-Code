@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hello-Scan-Code Configuration Schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema 引用"
+    },
+    "repo_path": {
+      "type": "string",
+      "description": "搜索目标代码仓库路径",
+      "default": "."
+    },
+    "search_term": {
+      "type": "string",
+      "description": "搜索关键词，逗号分隔",
+      "minLength": 1,
+      "default": "test,def,void"
+    },
+    "is_regex": {
+      "type": "boolean",
+      "description": "是否启用正则表达式搜索",
+      "default": false
+    },
+    "validate": {
+      "type": "boolean",
+      "description": "是否启用结果二次验证",
+      "default": false
+    },
+    "validate_workers": {
+      "type": "integer",
+      "description": "验证工作线程数量",
+      "minimum": 1,
+      "maximum": 32,
+      "default": 4
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "db_path": {
+          "type": "string",
+          "description": "SQLite数据库输出路径",
+          "default": "db/results.db"
+        },
+        "excel_path": {
+          "type": "string",
+          "description": "Excel报告输出路径",
+          "default": "report/results.xlsx"
+        }
+      },
+      "required": ["db_path", "excel_path"],
+      "additionalProperties": false
+    },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+          "description": "日志级别",
+          "default": "INFO"
+        }
+      },
+      "required": ["level"],
+      "additionalProperties": false
+    },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "ignore_dirs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "忽略目录列表",
+          "default": [".git", "__pycache__"]
+        },
+        "file_extensions": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^\\.[a-zA-Z0-9]+$"
+              }
+            }
+          ],
+          "description": "文件扩展名过滤器，null表示不限制",
+          "default": null
+        }
+      },
+      "required": ["ignore_dirs", "file_extensions"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["repo_path", "search_term", "is_regex", "validate", "validate_workers", "output", "logging", "filters"],
+  "additionalProperties": false
+}

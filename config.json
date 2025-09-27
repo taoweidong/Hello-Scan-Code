@@ -1,0 +1,28 @@
+{
+  "$schema": "./config.schema.json",
+  "repo_path": ".",
+  "search_term": "test,def,void",
+  "is_regex": false,
+  "validate": false,
+  "validate_workers": 4,
+  "output": {
+    "db_path": "db/results.db",
+    "excel_path": "report/results.xlsx"
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "filters": {
+    "ignore_dirs": [
+      ".git",
+      "__pycache__",
+      ".svn",
+      ".hg",
+      ".idea",
+      ".vscode",
+      "node_modules",
+      ".tox"
+    ],
+    "file_extensions": null
+  }
+}

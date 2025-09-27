@@ -18,14 +18,14 @@ logger = get_logger()
 class SearchStrategy(ABC):
     """搜索策略抽象基类"""
     
-    def __init__(self, config: Optional[SearchConfig] = None):
+    def __init__(self, config: Optional[AppConfig] = None):
         """
         初始化搜索策略
         
         Args:
             config: 搜索配置对象
         """
-        self.config = config or SearchConfig()
+        self.config = config or AppConfig()
     
     @abstractmethod
     def search(self, repo_path: str, search_terms: List[str] | str, is_regex: bool = False) -> List[Dict[str, Any]]:

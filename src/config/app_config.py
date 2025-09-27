@@ -18,7 +18,7 @@ class AppConfig(BaseConfig):
     repo_path: str = "/root/CodeRootPath"
     search_term: str = "test,def,void"
     is_regex: bool = False
-    validate: bool = False
+    enable_validate: bool = False
     validate_workers: int = 4
     
     # 输出路径配置
@@ -37,7 +37,7 @@ class AppConfig(BaseConfig):
         self.repo_path = self.get_env_var('REPO_PATH', self.repo_path)
         self.search_term = self.get_env_var('SEARCH_TERM', self.search_term)
         self.is_regex = self.get_env_var('IS_REGEX', self.is_regex, bool)
-        self.validate = self.get_env_var('VALIDATE', self.validate, bool)
+        self.enable_validate = self.get_env_var('VALIDATE', self.enable_validate, bool)
         self.validate_workers = self.get_env_var('VALIDATE_WORKERS', self.validate_workers, int)
         self.db_path = self.get_env_var('DB_PATH', self.db_path)
         self.excel_path = self.get_env_var('EXCEL_PATH', self.excel_path)
@@ -53,8 +53,8 @@ class AppConfig(BaseConfig):
     
     def validate(self) -> bool:
         """验证配置是否有效"""
-        # 检查必要的路径
-        if not self.repo_path or not os.path.exists(self.repo_path):
+        # 检查必要的路径（不检查文件存在，因为可能是相对路径）
+        if not self.repo_path:
             return False
             
         # 检查搜索词
@@ -81,12 +81,18 @@ class AppConfig(BaseConfig):
 def parse_args() -> AppConfig:
     """
     创建配置对象，使用默认值并支持环境变量覆盖
-    保持向后兼容性
+    保持向后兼容性，优先尝试JSON配置
     """
-    config = AppConfig()
-    config.load_from_env()
-    config.ensure_output_dirs()
-    return config
+    # 先尝试使用JSON配置
+    try:
+        from .json_config_adapter import load_app_config_from_json
+        return load_app_config_from_json()
+    except Exception:
+        # JSON配置失败，使用传统方式
+        config = AppConfig()
+        config.load_from_env()
+        config.ensure_output_dirs()
+        return config
 
 
 # 向后兼容性别名

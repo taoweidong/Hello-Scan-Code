@@ -7,7 +7,7 @@
 import os
 import sys
 from typing import List, Dict, Any
-from .config import get_logger, AppConfig
+from .config import get_logger, AppConfig, AppConfig
 from .search_template import DefaultSearchTemplate
 from .database import DatabaseManager
 from .exporter import ExcelExporter
@@ -18,7 +18,7 @@ logger = get_logger()
 class CodeSearcher:
     """代码搜索器主类，整合所有搜索功能"""
     
-    def __init__(self, config: SearchConfig):
+    def __init__(self, config: AppConfig):
         """
         初始化代码搜索器
         

@@ -15,7 +15,7 @@ class SearchStrategyFactory:
     """搜索策略工厂类"""
     
     @staticmethod
-    def create_strategy(strategy_type: str, config: Optional[SearchConfig] = None) -> Optional[SearchStrategy]:
+    def create_strategy(strategy_type: str, config: Optional[AppConfig] = None) -> Optional[SearchStrategy]:
         """
         根据策略类型创建搜索策略
         
@@ -37,7 +37,7 @@ class SearchStrategyFactory:
             return None
     
     @staticmethod
-    def create_default_strategy(config: Optional[SearchConfig] = None) -> SearchStrategy:
+    def create_default_strategy(config: Optional[AppConfig] = None) -> SearchStrategy:
         """
         创建默认搜索策略（Grep策略）
         

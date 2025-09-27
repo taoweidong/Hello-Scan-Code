@@ -1,6 +1,6 @@
 [project]
 name = "hello-scan-code"
-version = "0.1.0"
+version = "1.0.0"
 description = "高效代码搜索工具"
 requires-python = ">=3.10"
 dependencies = [
@@ -9,4 +9,18 @@ dependencies = [
     "openpyxl>=3.0.0",
     "sqlalchemy>=2.0.0",
     "alembic>=1.8.0",
+    "pyinstaller>=5.10.0",
+    "jsonschema>=4.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pyinstaller]
+hidden-imports = [
+    "sqlalchemy.sql.default_comparator",
+    "sqlalchemy.dialects.sqlite",
+    "pandas._libs.writers",
+    "openpyxl.compat"
 ]

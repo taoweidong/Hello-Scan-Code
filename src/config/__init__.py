@@ -16,6 +16,14 @@ from .config_manager import (
     get_database_config
 )
 
+# 新增的JSON配置支持
+from .json_config_loader import JSONConfigLoader, get_config_loader, load_json_config
+from .json_config_adapter import (
+    JSONConfigAdapter, 
+    load_app_config_from_json, 
+    parse_args_with_json_support
+)
+
 __all__ = [
     # 基础配置
     'BaseConfig',
@@ -31,6 +39,14 @@ __all__ = [
     'get_app_config',
     'get_logger_config',
     'get_database_config',
+    
+    # JSON配置支持
+    'JSONConfigLoader',
+    'get_config_loader',
+    'load_json_config',
+    'JSONConfigAdapter',
+    'load_app_config_from_json',
+    'parse_args_with_json_support',
     
     # 日志相关
     'get_logger',

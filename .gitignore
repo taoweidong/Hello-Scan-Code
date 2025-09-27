@@ -1,6 +1,7 @@
 .venv
 logs
 report
+dist
 .idea
 *.pyc
 *.egg-info
