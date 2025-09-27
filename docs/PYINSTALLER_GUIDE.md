@@ -1,254 +1,473 @@
-# PyInstaller 打包支持使用指南
+# PyInstaller 打包使用指南 (新架构版本)
 
 ## 概述
 
-Hello-Scan-Code 现已支持 PyInstaller 打包，可以生成独立的可执行文件，无需 Python 环境即可运行。同时引入了全新的 JSON 配置系统，提供更灵活的配置管理。
+Hello-Scan-Code 现已基于全新的模块化架构完全重构，支持 PyInstaller 打包，可以生成独立的可执行文件，无需在目标系统安装 Python 环境即可运行。
 
-## 新特性
+## 🚀 新架构特性
 
-### 1. JSON 配置系统
+### 模块化配置系统
+- **统一配置管理器**：`ConfigManager` 统一管理所有配置模块
+- **分层配置架构**：应用配置、日志配置、数据库配置独立管理
+- **JSON配置优先**：支持外置JSON配置文件，优先级高于环境变量
+- **自动配置验证**：内置配置验证和错误处理机制
+- **向后兼容性**：完全兼容原有的配置方式
 
-- **外置配置文件**：支持通过 `config.json` 文件管理所有配置
-- **自动发现**：程序会自动查找配置文件
-- **Schema 验证**：提供 JSON Schema 验证确保配置正确性
-- **向后兼容**：保持与现有配置系统的兼容性
+### 增强的打包支持
+- **智能资源收集**：自动识别和打包所有必要资源文件
+- **模块化钩子系统**：为新架构优化的PyInstaller钩子
+- **跨平台构建脚本**：适配新架构的自动化构建工具
+- **配置模板管理**：自动生成和管理配置模板文件
 
-### 2. PyInstaller 打包支持
+## 📁 新架构目录结构
 
-- **跨平台构建**：支持 Windows 和 Linux 平台
-- **单文件模式**：Windows 生成单一 .exe 文件
-- **目录模式**：Linux 生成包含依赖的目录结构
-- **自动化构建**：提供构建脚本自动化打包流程
-
-## 快速开始
-
-### 使用 JSON 配置
-
-1. **生成配置模板**：
-```bash
-python config_migration.py --template --output config.json
+```
+项目根目录/
+├── src/
+│   ├── config/                        # 配置系统模块
+│   │   ├── __init__.py                # 统一配置接口
+│   │   ├── base_config.py             # 配置基类
+│   │   ├── app_config.py              # 应用配置
+│   │   ├── logger_config.py           # 日志配置
+│   │   ├── database_config.py         # 数据库配置
+│   │   ├── config_manager.py          # 配置管理器
+│   │   └── json_config_loader.py      # JSON配置加载器
+│   ├── packaging/                     # 打包支持模块
+│   │   ├── __init__.py                # 打包接口
+│   │   ├── pyinstaller_hooks.py       # PyInstaller钩子
+│   │   └── resource_bundler.py        # 资源打包器
+│   └── ... (其他业务模块)
+├── config/                            # 配置文件目录
+│   ├── config.template.json           # 配置模板
+│   └── example.json                   # 示例配置
+├── build/                             # 构建配置
+│   ├── windows/hello-scan-code.spec   # Windows打包配置
+│   └── linux/hello-scan-code.spec     # Linux打包配置
+├── scripts/                           # 构建脚本
+│   ├── build_windows.py               # Windows构建脚本
+│   └── build_linux.py                 # Linux构建脚本
+├── tests/                             # 测试目录
+├── Makefile                           # 构建工具
+├── test_new_architecture.py           # 新架构测试
+└── dist/                              # 打包输出目录
 ```
 
-2. **编辑配置文件**：
+## 🛠️ 快速开始
+
+### 1. 环境准备
+
+```bash
+# 安装项目依赖
+pip install pyinstaller>=6.0.0 loguru pandas openpyxl sqlalchemy alembic
+
+# 或使用Makefile
+make install
+```
+
+### 2. 配置文件设置
+
+#### 创建配置文件
+```bash
+# 使用Makefile创建配置文件
+make config
+
+# 或手动复制
+cp config/config.template.json config.json
+
+# 编辑配置文件
+vim config.json
+```
+
+#### 新架构配置文件示例
 ```json
 {
-  "repo_path": "./your-project",
-  "search_term": "function,class,TODO",
+  "_comment": "Hello-Scan-Code 配置文件 (新架构版本)",
+  
+  "repo_path": ".",
+  "search_term": "test,def,void",
   "is_regex": false,
-  "validate": true,
-  "validate_workers": 8,
+  "validate": false,
+  "validate_workers": 4,
+  
   "output": {
-    "db_path": "results/search.db",
-    "excel_path": "results/report.xlsx"
+    "db_path": "db/results.db",
+    "excel_path": "report/results.xlsx"
   },
+  
   "logging": {
-    "level": "INFO"
+    "level": "INFO",
+    "file_path": "logs/app.log",
+    "rotation": "10 MB",
+    "retention": "7 days"
   },
+  
+  "database": {
+    "pool_size": 5,
+    "max_overflow": 10,
+    "pool_timeout": 30
+  },
+  
   "filters": {
-    "ignore_dirs": [".git", "__pycache__", "node_modules"],
-    "file_extensions": [".py", ".js", ".java", ".cpp"]
+    "ignore_dirs": [
+      ".git", "__pycache__", ".svn", ".hg", ".idea",
+      ".vscode", "node_modules", ".tox", "dist", "build"
+    ],
+    "file_extensions": null
   }
 }
 ```
 
-3. **运行搜索**：
+### 3. 构建和测试
+
+#### 测试新架构
 ```bash
-python main.py
+# 测试新架构集成
+make test-new-arch
+
+# 或直接运行
+python test_new_architecture.py
 ```
 
-### 打包为可执行文件
-
-#### Windows 平台
-
-1. **安装依赖**：
+#### 构建可执行文件
 ```bash
-pip install pyinstaller jsonschema
+# Linux平台构建
+make build-linux
+
+# Windows平台构建  
+make build-windows
+
+# 完整构建流程
+make all
 ```
 
-2. **执行打包**：
+## 📋 配置系统详解
+
+### 配置加载优先级
+
+1. **JSON配置文件** (最高优先级)
+   - 开发环境：项目根目录的 `config.json`
+   - 打包环境：可执行文件同目录的 `config.json`
+
+2. **环境变量** (中等优先级)
+   - `REPO_PATH`、`SEARCH_TERM`、`LOG_LEVEL` 等
+
+3. **默认配置** (最低优先级)
+   - 内置在代码中的默认值
+
+### 配置管理器使用
+
+```python
+from src.config import get_config_manager, get_app_config
+
+# 获取配置管理器
+manager = get_config_manager()
+
+# 获取应用配置
+app_config = get_app_config()
+
+# 创建配置模板
+manager.create_config_template()
+
+# 获取配置信息
+config_info = manager.get_config_info()
+```
+
+### JSON配置加载器
+
+```python
+from src.config import get_json_loader, load_config_from_json
+
+# 获取JSON加载器
+loader = get_json_loader()
+
+# 加载JSON配置
+config = AppConfig()
+config = load_config_from_json(config)
+
+# 创建配置模板
+loader.save_config_template()
+```
+
+## 🔧 构建系统详解
+
+### 新架构构建特性
+
+1. **智能依赖检测**：自动检测新架构模块的依赖关系
+2. **配置模板管理**：自动生成和复制配置模板文件
+3. **资源文件收集**：智能收集配置文件、数据库迁移等资源
+4. **多平台支持**：针对Windows和Linux平台的优化配置
+
+### 使用构建脚本
+
+#### Windows平台
 ```bash
+# 基本构建
 python scripts/build_windows.py
+
+# 安装依赖并构建
+python scripts/build_windows.py --install-deps
+
+# 不清理构建目录
+python scripts/build_windows.py --no-clean
 ```
 
-3. **查看结果**：
-```
-dist/hello-scan-code-v1.0.0-windows/
-├── hello-scan-code.exe
-├── config.template.json
-├── USAGE.md
-└── README.md
-```
-
-#### Linux 平台
-
-1. **安装依赖**：
+#### Linux平台
 ```bash
-pip install pyinstaller jsonschema
-```
-
-2. **执行打包**：
-```bash
+# 基本构建
 python scripts/build_linux.py
+
+# 安装依赖并构建
+python scripts/build_linux.py --install-deps
+
+# 不清理构建目录
+python scripts/build_linux.py --no-clean
 ```
 
-3. **查看结果**：
-```
-dist/hello-scan-code-v1.0.0-linux/
-├── hello-scan-code/          # 应用目录
-├── run.sh                    # 启动脚本
-├── config.template.json
-├── USAGE.md
-└── README.md
-```
-
-## 配置说明
-
-### JSON 配置文件结构
-
-| 配置项 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `repo_path` | string | `"."` | 搜索目标路径 |
-| `search_term` | string | `"test,def,void"` | 搜索关键词（逗号分隔） |
-| `is_regex` | boolean | `false` | 是否使用正则表达式 |
-| `validate` | boolean | `false` | 是否启用结果验证 |
-| `validate_workers` | integer | `4` | 验证工作线程数量 |
-| `output.db_path` | string | `"db/results.db"` | SQLite 数据库路径 |
-| `output.excel_path` | string | `"report/results.xlsx"` | Excel 报告路径 |
-| `logging.level` | string | `"INFO"` | 日志级别 |
-| `filters.ignore_dirs` | array | `[".git", "__pycache__"]` | 忽略目录列表 |
-| `filters.file_extensions` | array/null | `null` | 文件扩展名过滤 |
-
-### 配置文件查找顺序
-
-1. 当前工作目录下的 `config.json`
-2. 可执行文件目录下的 `config.json`
-3. `config` 目录下的 `config.json`
-4. 内置默认配置
-
-## 高级功能
-
-### 配置验证
-
-验证现有配置文件：
-```bash
-python config_migration.py --validate config.json
-```
-
-### 配置迁移
-
-将旧的 Python 配置转换为 JSON 格式：
-```bash
-python config_migration.py --migrate --output config.json
-```
-
-### 自定义构建
-
-修改 `src/packaging/__init__.py` 中的 `PackagingHelper` 类来自定义打包行为：
-
-- 添加新的隐式导入模块
-- 包含额外的数据文件
-- 自定义 spec 文件模板
-
-## 部署指南
-
-### 开发环境
-
-1. 克隆项目并安装依赖
-2. 复制 `config.template.json` 为 `config.json`
-3. 修改配置参数
-4. 运行 `python main.py`
-
-### 生产环境
-
-1. 下载对应平台的预编译包
-2. 解压到目标目录
-3. 复制 `config.template.json` 为 `config.json`
-4. 修改配置参数
-5. 运行可执行文件
-
-#### Windows 部署
-
-```cmd
-# 下载并解压
-unzip hello-scan-code-v1.0.0-windows.zip
-
-# 配置
-copy config.template.json config.json
-notepad config.json
-
-# 运行
-hello-scan-code.exe
-```
-
-#### Linux 部署
+### 手动PyInstaller打包
 
 ```bash
-# 下载并解压
-tar -xzf hello-scan-code-v1.0.0-linux.tar.gz
+# Windows单文件模式
+python -m PyInstaller --clean --noconfirm build/windows/hello-scan-code.spec
 
-# 配置
-cp config.template.json config.json
-nano config.json
-
-# 运行
-./run.sh
-# 或者
-./hello-scan-code/hello-scan-code
+# Linux目录模式
+python -m PyInstaller --clean --noconfirm build/linux/hello-scan-code.spec
 ```
 
-## 故障排查
+## 📦 部署指南
+
+### Windows部署
+
+1. **下载分发包**：`hello-scan-code-v1.0.0-windows.zip`
+2. **解压到目标目录**
+3. **配置应用**：
+   ```cmd
+   copy config.template.json config.json
+   notepad config.json
+   ```
+4. **运行程序**：
+   ```cmd
+   hello-scan-code.exe
+   ```
+
+### Linux部署
+
+1. **下载分发包**：`hello-scan-code-v1.0.0-linux.tar.gz`
+2. **解压并部署**：
+   ```bash
+   tar -xzf hello-scan-code-v1.0.0-linux.tar.gz
+   cd hello-scan-code-v1.0.0-linux
+   ```
+3. **使用启动脚本**（推荐）：
+   ```bash
+   ./run-hello-scan-code.sh
+   ```
+4. **或直接运行**：
+   ```bash
+   ./hello-scan-code/hello-scan-code
+   ```
+
+## 🔍 配置示例
+
+### 基本搜索配置
+```json
+{
+  "repo_path": "/path/to/your/code",
+  "search_term": "function,class,def",
+  "is_regex": false,
+  "validate": false,
+  "output": {
+    "db_path": "search_results.db",
+    "excel_path": "search_report.xlsx"
+  }
+}
+```
+
+### 高级搜索配置
+```json
+{
+  "repo_path": ".",
+  "search_term": "TODO|FIXME|BUG",
+  "is_regex": true,
+  "validate": true,
+  "validate_workers": 8,
+  "logging": {
+    "level": "DEBUG",
+    "file_path": "logs/debug.log"
+  },
+  "filters": {
+    "file_extensions": [".py", ".js", ".java", ".cpp"],
+    "ignore_dirs": [
+      ".git", "node_modules", "dist", "build",
+      "__pycache__", ".vscode", ".idea"
+    ]
+  }
+}
+```
+
+### 性能优化配置
+```json
+{
+  "repo_path": ".",
+  "search_term": "performance,optimization",
+  "validate": true,
+  "validate_workers": 16,
+  "database": {
+    "pool_size": 10,
+    "max_overflow": 20,
+    "pool_timeout": 60
+  },
+  "logging": {
+    "level": "INFO",
+    "rotation": "100 MB",
+    "retention": "30 days"
+  }
+}
+```
+
+## 🛠️ 开发者指南
+
+### 扩展配置系统
+
+1. **添加新配置类**：
+```python
+from src.config.base_config import BaseConfig
+
+class MyConfig(BaseConfig):
+    def __init__(self):
+        self.my_setting = "default_value"
+    
+    def load_from_env(self):
+        self.my_setting = self.get_env_var('MY_SETTING', self.my_setting)
+    
+    def validate(self):
+        return bool(self.my_setting)
+```
+
+2. **注册到配置管理器**：
+```python
+from src.config import get_config_manager
+
+manager = get_config_manager()
+my_config = manager.get_config(MyConfig)
+```
+
+### 添加新的打包资源
+
+```python
+from src.packaging import ResourceBundler
+
+class CustomResourceBundler(ResourceBundler):
+    def collect_custom_files(self):
+        # 自定义资源收集逻辑
+        return [(source, target), ...]
+```
+
+## 🔧 故障排除
 
 ### 常见问题
 
-1. **配置文件格式错误**
-   - 检查 JSON 语法是否正确
-   - 使用 `config_migration.py --validate` 验证
+1. **配置文件加载失败**
+   ```bash
+   # 验证JSON格式
+   python -c "import json; json.load(open('config.json'))"
+   
+   # 测试配置加载
+   python -c "from src.config import get_app_config; print(get_app_config().repo_path)"
+   ```
 
-2. **路径不存在**
-   - 确保 `repo_path` 指向有效目录
-   - 使用绝对路径避免路径问题
+2. **模块导入错误**
+   ```bash
+   # 测试新架构模块
+   python test_new_architecture.py
+   
+   # 检查Python路径
+   python -c "import sys; print(sys.path)"
+   ```
 
-3. **权限问题**
-   - Linux 下确保可执行文件有执行权限
-   - 检查输出目录的写入权限
+3. **打包资源缺失**
+   ```bash
+   # 验证资源收集
+   python -c "from src.packaging import ResourceBundler; print(ResourceBundler().validate_resources())"
+   ```
 
-4. **依赖缺失**
-   - 预编译包应包含所有必要依赖
-   - 如遇问题，尝试在有 Python 环境的机器上运行
+### 调试技巧
 
-### 日志调试
+1. **启用详细日志**：
+   ```json
+   {
+     "logging": {
+       "level": "DEBUG"
+     }
+   }
+   ```
 
-设置更详细的日志级别：
-```json
-{
-  "logging": {
-    "level": "DEBUG"
-  }
-}
+2. **验证配置加载**：
+   ```bash
+   python -c "from src.config import get_config_manager; print(get_config_manager().get_all_configs())"
+   ```
+
+3. **测试打包模块**：
+   ```bash
+   python -c "from src.packaging import get_hidden_imports; print(len(get_hidden_imports()))"
+   ```
+
+## 📊 性能对比
+
+| 特性 | 原架构 | 新架构 | 改进 |
+|------|--------|--------|------|
+| 配置加载 | 单一配置文件 | 模块化 + JSON | ✓ 更灵活 |
+| 错误处理 | 基础验证 | 多层验证 | ✓ 更健壮 |
+| 扩展性 | 有限 | 高度模块化 | ✓ 易扩展 |
+| 打包效率 | 手动配置 | 智能收集 | ✓ 更自动化 |
+| 维护性 | 中等 | 高 | ✓ 更易维护 |
+
+## 📝 更新日志
+
+### v1.0.0 (新架构版本)
+- 🏗️ 全新模块化架构重构
+- 🎯 统一配置管理系统
+- 📄 JSON配置文件支持
+- 🚀 增强的PyInstaller打包支持
+- 🔧 自动化构建和测试工具
+- 📚 完整的文档和使用指南
+- 🔄 完全向后兼容
+
+## 🤝 贡献指南
+
+欢迎为新架构贡献代码！
+
+### 开发环境设置
+
+```bash
+# 克隆项目
+git clone <repository-url>
+cd Hello-Scan-Code
+
+# 安装依赖
+make install
+
+# 运行测试
+make test
+
+# 测试新架构
+make test-new-arch
 ```
 
-## 版本兼容性
+### 代码规范
 
-- **配置兼容性**：JSON 配置与原有 Python 配置并存
-- **API 兼容性**：保持所有原有 API 接口不变
-- **数据兼容性**：数据库和 Excel 输出格式保持一致
+- 遵循现有的模块化架构
+- 所有配置类继承 `BaseConfig`
+- 使用统一的日志接口
+- 编写相应的测试用例
+- 更新相关文档
 
-## 技术架构
+## 📞 技术支持
 
-### 配置系统架构
+如遇到问题，请检查：
 
-```
-JSON 配置文件 → JSONConfigLoader → JSONConfigAdapter → AppConfig → 应用组件
-              ↓
-        Schema 验证 → 配置合并 → 默认值填充 → 环境变量覆盖
-```
+1. **Python版本**：确保使用 Python 3.10+
+2. **依赖安装**：运行 `make install` 确保所有依赖已安装
+3. **配置格式**：验证JSON配置文件格式正确
+4. **架构测试**：运行 `make test-new-arch` 验证新架构功能
 
-### 打包系统架构
-
-```
-源代码 → PyInstaller → 依赖收集 → 资源打包 → 钩子处理 → 可执行文件
-       ↓
-    Spec 文件 → 隐式导入 → 数据文件 → 平台适配 → 分发包
-```
-
-更多详细信息请参考项目主 README.md 文件。
+更多技术支持请参考项目 README 或提交 Issue。
