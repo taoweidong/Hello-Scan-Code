@@ -38,7 +38,7 @@ hello-scan-code/
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/nineaiyu/Hello-Scan-Code.git
+   git clone https://github.com/taoweidong/Hello-Scan-Code.git
    cd Hello-Scan-Code
    ```
 
