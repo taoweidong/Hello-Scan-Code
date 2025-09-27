@@ -12,7 +12,7 @@ Hello-Scan-Code 是一个专为大型代码仓库设计的高效搜索工具。�
 
 ## 项目结构
 
-```
+```bash
 hello-scan-code/
 ├── src/
 │   ├── __init__.py
@@ -32,48 +32,51 @@ hello-scan-code/
 └── main.py                 # 根目录入口文件
 ```
 
-
-
 ## 项目初始化
 
 1. **克隆项目**
-   ```bash
-   git clone https://github.com/taoweidong/Hello-Scan-Code.git
-   cd Hello-Scan-Code
-   ```
 
-2. **安装依赖**
-   ```bash
-   # 使用 uv（推荐）
-   uv sync
-   
-   # 或使用 pip
-   pip install loguru pandas openpyxl
-   ```
+```bash
+git clone https://github.com/taoweidong/Hello-Scan-Code.git
+cd Hello-Scan-Code
+```
 
-3. **创建输出目录**
-   ```bash
-   mkdir -p db report logs
-   ```
+1. **安装依赖**
+
+```bash
+# 使用 uv（推荐）
+uv sync
+
+# 或使用 pip
+pip install loguru pandas openpyxl
+```
+
+1. **创建输出目录**
+
+```bash
+mkdir -p db report logs
+```
 
 ## 本地运行
 
 1. **配置搜索参数**
-   
-   在 `src/main.py` 中修改配置：
-   ```python
-   config.repo_path = "/path/to/your/code/repository"  # 代码仓库路径
-   config.search_term = "keyword1,keyword2,keyword3"   # 搜索关键字
-   config.ignore_dirs = [".git", "node_modules"]       # 忽略目录
-   config.file_extensions = [".py", ".js", ".go"]      # 文件类型
-   ```
 
-2. **运行搜索**
+在 `src/main.py` 中修改配置：
+
+```python
+config.repo_path = "/path/to/your/code/repository"  # 代码仓库路径
+config.search_term = "keyword1,keyword2,keyword3"   # 搜索关键字
+config.ignore_dirs = [".git", "node_modules"]       # 忽略目录
+config.file_extensions = [".py", ".js", ".go"]      # 文件类型
+```
+
+1. **运行搜索**
+
    ```bash
    python main.py
    ```
 
-3. **查看结果**
+1. **查看结果**
    - SQLite 数据库：`db/results.db`
    - Excel 文件：`report/results.xlsx`
    - 日志文件：`logs/` 目录
