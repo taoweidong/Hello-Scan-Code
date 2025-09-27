@@ -11,7 +11,7 @@ from datetime import datetime
 from sqlalchemy import Engine, text, inspect
 from sqlalchemy.exc import SQLAlchemyError
 from ..models.base import BaseModel
-from ..logger_config import get_logger
+from src.config import get_logger
 
 logger = get_logger()
 

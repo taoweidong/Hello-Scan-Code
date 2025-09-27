@@ -5,8 +5,7 @@
 
 import os
 import sys
-from .logger_config import get_logger
-from .config import parse_args, SearchConfig
+from .config import get_logger, get_app_config, AppConfig
 from .code_searcher import CodeSearcher
 
 logger = get_logger()
@@ -16,7 +15,7 @@ def main():
     """主函数"""
     try:
         # 解析配置，使用config文件中的默认值
-        config = parse_args()
+        config = get_app_config()
         
         # 允许在入口脚本中直接修改配置参数
         # 用户可以在这里直接修改配置，例如：

@@ -7,10 +7,10 @@
 from abc import ABC, abstractmethod
 import os
 from typing import List, Dict, Any
-from .config import SearchConfig
+from .config import AppConfig
 from .strategies import SearchStrategy
 from .search_factory import SearchStrategyFactory
-from .logger_config import get_logger
+from .config import get_logger
 
 logger = get_logger()
 
@@ -18,7 +18,7 @@ logger = get_logger()
 class SearchTemplate(ABC):
     """搜索模板抽象类"""
     
-    def __init__(self, config: SearchConfig):
+    def __init__(self, config: AppConfig):
         """
         初始化搜索模板
         

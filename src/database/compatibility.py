@@ -10,7 +10,7 @@ from .session_manager import SessionManager
 from .repositories.search_result_repository import SearchResultRepository
 from .migrations.migration_service import MigrationService
 from .config import DatabaseConfig, EngineFactory
-from .logger_config import get_logger
+from src.config import get_logger
 
 logger = get_logger()
 

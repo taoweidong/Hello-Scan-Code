@@ -2,7 +2,7 @@ import subprocess
 import re
 import os
 from typing import List, Tuple, Dict, Any
-from .logger_config import get_logger
+from .config import get_logger
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import chardet
 import glob
@@ -211,7 +211,7 @@ class SearchEngine:
         Returns:
             是否应该忽略该文件
         """
-        from .config import SearchConfig
+        from .config import AppConfig
         config = SearchConfig()  # 使用默认配置
         
         # 检查是否在忽略目录中

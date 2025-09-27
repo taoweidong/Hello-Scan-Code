@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker, Session, scoped_session
 from sqlalchemy.exc import SQLAlchemyError
 from .config import DatabaseConfig, EngineFactory
 from .models import BaseModel
-from .logger_config import get_logger
+from src.config import get_logger
 
 logger = get_logger()
 

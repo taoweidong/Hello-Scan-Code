@@ -1,6 +1,6 @@
 import os
 from typing import List, Dict, Any
-from .logger_config import get_logger
+from .config import get_logger
 
 # 注意：在实际运行前需要安装依赖
 # pandas 和 openpyxl 需要通过 pip 或 uv 安装
