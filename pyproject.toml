@@ -1,7 +1,7 @@
 [project]
 name = "hello-scan-code"
-version = "0.1.0"
-description = "高效代码搜索工具"
+version = "1.0.0"
+description = "高效代码搜索工具 (新架构版本)"
 requires-python = ">=3.10"
 dependencies = [
     "loguru>=0.7.0",
@@ -9,4 +9,5 @@ dependencies = [
     "openpyxl>=3.0.0",
     "sqlalchemy>=2.0.0",
     "alembic>=1.8.0",
+    "pyinstaller>=6.0.0",
 ]

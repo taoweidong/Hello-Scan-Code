@@ -1,0 +1,44 @@
+{
+  "_comment": "Hello-Scan-Code 配置文件模板 (新架构版本)",
+  "_description": "复制此文件为 config.json 并修改相应配置项",
+  
+  "repo_path": ".",
+  "search_term": "test,def,void",
+  "is_regex": false,
+  "validate": false,
+  "validate_workers": 4,
+  
+  "output": {
+    "db_path": "db/results.db",
+    "excel_path": "report/results.xlsx"
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "file_path": "logs/app.log",
+    "rotation": "10 MB",
+    "retention": "7 days"
+  },
+  
+  "database": {
+    "pool_size": 5,
+    "max_overflow": 10,
+    "pool_timeout": 30
+  },
+  
+  "filters": {
+    "ignore_dirs": [
+      ".git",
+      "__pycache__",
+      ".svn", 
+      ".hg",
+      ".idea",
+      ".vscode",
+      "node_modules",
+      ".tox",
+      "dist",
+      "build"
+    ],
+    "file_extensions": null
+  }
+}
