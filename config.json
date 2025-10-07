@@ -1,28 +1,35 @@
 {
-  "$schema": "./config.schema.json",
   "repo_path": ".",
-  "search_term": "test,def,void",
-  "is_regex": false,
-  "validate": false,
-  "validate_workers": 4,
+  "ignore_dirs": [".git", "node_modules", "venv", "__pycache__", "build", "dist", "report", "db"],
+  "file_extensions": [".py", ".js", ".java", ".cpp", ".c", ".h", ".go", ".rs", ".php", ".cs", ".ts", ".sql", ".html", ".css"],
+  "plugins": {
+    "enabled": ["builtin.keyword", "builtin.security", "builtin.todo", "builtin.regex"],
+    "dirs": ["src/plugins/custom/"]
+  },
   "output": {
-    "db_path": "db/results.db",
-    "excel_path": "report/results.xlsx"
+    "report_dir": "report/",
+    "export_formats": ["excel", "html"]
   },
-  "logging": {
-    "level": "INFO"
+  "scan": {
+    "timeout": 300,
+    "max_file_size": 10485760
   },
-  "filters": {
-    "ignore_dirs": [
-      ".git",
-      "__pycache__",
-      ".svn",
-      ".hg",
-      ".idea",
-      ".vscode",
-      "node_modules",
-      ".tox"
-    ],
-    "file_extensions": null
+  "plugin_configs": {
+    "builtin.keyword": {
+      "keywords": ["TODO", "FIXME", "BUG", "HACK", "XXX"],
+      "case_sensitive": false
+    },
+    "builtin.regex": {
+      "patterns": [
+        {
+          "pattern": "eval\\(",
+          "rule_id": "EVAL_USAGE",
+          "message": "发现eval函数使用",
+          "severity": "high",
+          "category": "security",
+          "suggestion": "避免使用eval函数，考虑使用更安全的替代方案"
+        }
+      ]
+    }
   }
 }

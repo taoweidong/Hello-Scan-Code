@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
 """
-高效代码搜索工具主程序入口
+Hello-Scan-Code 顶层入口
 """
-
 import sys
 import os
 
 # 添加src目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.main import main
-
 if __name__ == "__main__":
-    main()
+    # 导入并运行主程序
+    from src.main import main
+    sys.exit(main())

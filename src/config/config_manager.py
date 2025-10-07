@@ -1,149 +1,129 @@
 """
-配置管理器
-
-提供统一的配置管理接口，集中管理所有配置类，支持JSON配置文件
+配置管理器 - 负责加载和管理配置
 """
+import json
+import os
+from typing import Dict, List, Any, Optional
+from pathlib import Path
+import logging
 
-from typing import Optional, Dict, Any, TypeVar, Type
-from .base_config import BaseConfig
-from .app_config import AppConfig
-from .logger_config import LoggerConfig, setup_logger
-from .database_config import DatabaseConfig
-from .json_config_loader import load_config_from_json, get_json_loader
-
-T = TypeVar('T', bound=BaseConfig)
-
+logger = logging.getLogger(__name__)
 
 class ConfigManager:
-    """配置管理器 - 统一管理所有配置"""
+    """配置管理器"""
     
-    def __init__(self):
-        self._configs: Dict[str, BaseConfig] = {}
-        self._initialized = False
+    def __init__(self, config_file: str = "config.json"):
+        self.config_file = config_file
+        self.config = {}
+        self._load_config()
     
-    def initialize(self) -> None:
-        """初始化所有配置"""
-        if self._initialized:
-            return
-            
-        # 初始化各个配置模块
-        self.app = self.get_config(AppConfig)
-        self.logger = self.get_config(LoggerConfig)
-        self.database = self.get_config(DatabaseConfig)
-        
-        # 设置日志系统
-        setup_logger(self.logger)
-        
-        # 确保输出目录存在
-        self.app.ensure_output_dirs()
-        self.database.ensure_output_dirs()
-        
-        self._initialized = True
+    def _load_config(self):
+        """加载配置文件"""
+        try:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding='utf-8') as f:
+                    self.config = json.load(f)
+            else:
+                # 使用默认配置
+                self.config = self._get_default_config()
+                self._save_config()
+        except Exception as e:
+            logger.error(f"加载配置文件失败: {e}")
+            self.config = self._get_default_config()
     
-    def get_config(self, config_class: Type[T]) -> T:
-        """
-        获取配置实例，支持JSON配置文件加载
-        
-        Args:
-            config_class: 配置类
-            
-        Returns:
-            配置实例
-        """
-        config_name = config_class.__name__
-        
-        if config_name not in self._configs:
-            config_instance = config_class()
-            
-            # 先从环境变量加载
-            config_instance.load_from_env()
-            
-            # 再从JSON文件加载（优先级更高）
-            config_instance = load_config_from_json(config_instance)
-            
-            if not config_instance.validate():
-                raise ValueError(f"配置验证失败: {config_name}")
-                
-            self._configs[config_name] = config_instance
-        
-        return self._configs[config_name]
-    
-    def reload_config(self, config_class: Type[T]) -> T:
-        """
-        重新加载配置
-        
-        Args:
-            config_class: 配置类
-            
-        Returns:
-            新的配置实例
-        """
-        config_name = config_class.__name__
-        if config_name in self._configs:
-            del self._configs[config_name]
-        return self.get_config(config_class)
-    
-    def get_all_configs(self) -> Dict[str, Dict[str, Any]]:
-        """
-        获取所有配置的字典表示
-        
-        Returns:
-            所有配置的字典
-        """
-        if not self._initialized:
-            self.initialize()
-            
+    def _get_default_config(self) -> Dict[str, Any]:
+        """获取默认配置"""
         return {
-            name: config.to_dict() 
-            for name, config in self._configs.items()
+            "repo_path": ".",
+            "ignore_dirs": [".git", "node_modules", "venv", "__pycache__", "build", "dist"],
+            "file_extensions": [".py", ".js", ".java", ".cpp", ".c", ".h", ".go", ".rs", ".php", ".cs", ".ts"],
+            "plugins": {
+                "enabled": ["builtin.keyword", "builtin.security", "builtin.todo"],
+                "dirs": ["src/plugins/custom/"]
+            },
+            "output": {
+                "report_dir": "report/",
+                "export_formats": ["excel", "html"]
+            },
+            "scan": {
+                "timeout": 300,
+                "max_file_size": 10485760  # 10MB
+            }
         }
     
-    def validate_all(self) -> bool:
-        """
-        验证所有配置
-        
-        Returns:
-            所有配置是否都有效
-        """
-        if not self._initialized:
-            self.initialize()
-            
-        return all(config.validate() for config in self._configs.values())
-
-    def create_config_template(self) -> None:
-        """创建配置模板文件"""
-        loader = get_json_loader()
-        loader.save_config_template()
+    def _save_config(self):
+        """保存配置到文件"""
+        try:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
+                json.dump(self.config, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.error(f"保存配置文件失败: {e}")
     
-    def get_config_info(self) -> Dict[str, Any]:
-        """获取配置文件信息"""
-        loader = get_json_loader()
-        return loader.get_config_info()
-
-
-# 全局配置管理器实例
-_config_manager: Optional[ConfigManager] = None
-
-
-def get_config_manager() -> ConfigManager:
-    """获取全局配置管理器实例"""
-    global _config_manager
-    if _config_manager is None:
-        _config_manager = ConfigManager()
-        _config_manager.initialize()
-    return _config_manager
-
-
-def get_app_config() -> AppConfig:
-    """获取应用配置"""
-    return get_config_manager().app
-
-
-def get_logger_config() -> LoggerConfig:
-    """获取日志配置"""
-    return get_config_manager().logger
-
-
-def get_database_config() -> DatabaseConfig:
-    """获取数据库配置"""
-    return get_config_manager().database
+    def get_repo_path(self) -> str:
+        """获取仓库路径"""
+        return self.config.get("repo_path", ".")
+    
+    def get_ignore_dirs(self) -> List[str]:
+        """获取忽略目录列表"""
+        return self.config.get("ignore_dirs", [])
+    
+    def get_file_extensions(self) -> List[str]:
+        """获取文件扩展名列表"""
+        return self.config.get("file_extensions", [])
+    
+    def get_enabled_plugins(self) -> List[str]:
+        """获取启用的插件列表"""
+        return self.config.get("plugins", {}).get("enabled", [])
+    
+    def get_plugin_dirs(self) -> List[str]:
+        """获取插件目录列表"""
+        return self.config.get("plugins", {}).get("dirs", [])
+    
+    def get_report_dir(self) -> str:
+        """获取报告目录"""
+        return self.config.get("output", {}).get("report_dir", "report/")
+    
+    def get_export_formats(self) -> List[str]:
+        """获取导出格式列表"""
+        return self.config.get("output", {}).get("export_formats", ["excel"])
+    
+    def get_scan_timeout(self) -> int:
+        """获取扫描超时时间"""
+        return self.config.get("scan", {}).get("timeout", 300)
+    
+    def get_max_file_size(self) -> int:
+        """获取最大文件大小"""
+        return self.config.get("scan", {}).get("max_file_size", 10485760)
+    
+    def get_plugin_config(self, plugin_id: str) -> Dict[str, Any]:
+        """获取特定插件的配置"""
+        return self.config.get("plugin_configs", {}).get(plugin_id, {})
+    
+    def set_config_value(self, key: str, value: Any):
+        """设置配置值"""
+        keys = key.split('.')
+        current = self.config
+        
+        # 导航到最后一级
+        for k in keys[:-1]:
+            if k not in current:
+                current[k] = {}
+            current = current[k]
+        
+        # 设置值
+        current[keys[-1]] = value
+        self._save_config()
+    
+    def get_config_value(self, key: str, default: Any = None) -> Any:
+        """获取配置值"""
+        keys = key.split('.')
+        current = self.config
+        
+        # 导航到指定的键
+        for k in keys:
+            if isinstance(current, dict) and k in current:
+                current = current[k]
+            else:
+                return default
+        
+        return current
