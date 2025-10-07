@@ -2,11 +2,6 @@
 name = "hello-scan-code"
 version = "1.0.0"
 description = "高效代码搜索工具 (新架构版本)"
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
-description = "高效代码搜索工具 (新架构版本)"
-=======
-description = "高效代码搜索工具 (新架构版本)"
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
 requires-python = ">=3.10"
 dependencies = [
     "loguru>=0.7.0",
@@ -14,9 +9,6 @@ dependencies = [
     "openpyxl>=3.0.0",
     "sqlalchemy>=2.0.0",
     "alembic>=1.8.0",
-    "pyinstaller>=6.0.0",
-]
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
     "pyinstaller>=6.0.0",
     "jsonschema>=4.0.0",
 ]
@@ -32,7 +24,3 @@ hidden-imports = [
     "pandas._libs.writers",
     "openpyxl.compat"
 ]
-=======
-    "pyinstaller>=6.0.0",
-]
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a

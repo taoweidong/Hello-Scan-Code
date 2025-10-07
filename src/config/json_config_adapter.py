@@ -7,7 +7,7 @@ JSON配置适配器
 import os
 from typing import Dict, Any, Optional, List
 from .app_config import AppConfig
-from .json_config_loader import load_json_config
+from .json_config_loader import get_json_loader
 from loguru import logger
 
 
@@ -89,24 +89,35 @@ def load_app_config_from_json(config_path: Optional[str] = None) -> AppConfig:
         AppConfig实例
     """
     try:
-        json_config = load_json_config(config_path)
-        app_config = JSONConfigAdapter.from_json_config(json_config)
-        
-        # 确保输出目录存在
-        app_config.ensure_output_dirs()
-        
-        logger.info("已成功从JSON配置加载应用配置")
-        return app_config
-        
+        # 创建JSON加载器
+        loader = get_json_loader()
+        if config_path:
+            # 如果指定了路径，设置加载器的配置路径
+            loader.config_path = config_path
+            
+        # 加载JSON配置数据
+        json_data = loader.load_json_config()
+        if json_data is not None:
+            # 使用适配器将JSON数据转换为AppConfig
+            app_config = JSONConfigAdapter.from_json_config(json_data)
+            
+            # 确保输出目录存在
+            app_config.ensure_output_dirs()
+            
+            logger.info("已成功从JSON配置加载应用配置")
+            return app_config
+        else:
+            logger.warning("未能加载JSON配置，使用默认配置")
+            
     except Exception as e:
         logger.error(f"从JSON配置加载应用配置失败: {e}")
-        logger.info("使用默认AppConfig配置")
-        
-        # 回退到默认配置
-        config = AppConfig()
-        config.load_from_env()
-        config.ensure_output_dirs()
-        return config
+    
+    # 回退到默认配置
+    logger.info("使用默认AppConfig配置")
+    config = AppConfig()
+    config.load_from_env()
+    config.ensure_output_dirs()
+    return config
 
 
 def parse_args_with_json_support() -> AppConfig:

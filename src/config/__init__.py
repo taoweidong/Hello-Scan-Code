@@ -17,7 +17,7 @@ from .config_manager import (
 )
 
 # 新增的JSON配置支持
-from .json_config_loader import JSONConfigLoader, get_config_loader, load_json_config
+from .json_config_loader import JsonConfigLoader, get_json_loader, load_config_from_json
 from .json_config_adapter import (
     JSONConfigAdapter, 
     load_app_config_from_json, 
@@ -41,9 +41,9 @@ __all__ = [
     'get_database_config',
     
     # JSON配置支持
-    'JSONConfigLoader',
-    'get_config_loader',
-    'load_json_config',
+    'JsonConfigLoader',
+    'get_json_loader',
+    'load_config_from_json',
     'JSONConfigAdapter',
     'load_app_config_from_json',
     'parse_args_with_json_support',

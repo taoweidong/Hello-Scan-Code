@@ -1,64 +1,38 @@
 {
-<<<<<<< HEAD
-  "$schema": "./config.schema.json",
-=======
   "_comment": "Hello-Scan-Code 配置文件模板 (新架构版本)",
   "_description": "复制此文件为 config.json 并修改相应配置项",
-  
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
   "repo_path": ".",
   "search_term": "test,def,void",
   "is_regex": false,
   "validate": false,
   "validate_workers": 4,
-<<<<<<< HEAD
-=======
-  
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
   "output": {
     "db_path": "db/results.db",
     "excel_path": "report/results.xlsx"
   },
-<<<<<<< HEAD
-  "logging": {
-    "level": "INFO"
-  },
-=======
-  
   "logging": {
     "level": "INFO",
     "file_path": "logs/app.log",
     "rotation": "10 MB",
     "retention": "7 days"
   },
-  
   "database": {
     "pool_size": 5,
     "max_overflow": 10,
     "pool_timeout": 30
   },
-  
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
   "filters": {
     "ignore_dirs": [
       ".git",
       "__pycache__",
-<<<<<<< HEAD
-      ".svn",
-=======
       ".svn", 
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
       ".hg",
       ".idea",
       ".vscode",
       "node_modules",
-<<<<<<< HEAD
-      ".tox"
-=======
       ".tox",
       "dist",
       "build"
->>>>>>> 172855ff5c1efeb6adfd299ea559c10e6eccaf2a
     ],
     "file_extensions": null
   }

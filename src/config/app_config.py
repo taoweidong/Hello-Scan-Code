@@ -18,7 +18,7 @@ class AppConfig(BaseConfig):
     repo_path: str = "/root/CodeRootPath"
     search_term: str = "test,def,void"
     is_regex: bool = False
-    enable_validate: bool = False
+    enable_validate: bool = False  # 验证标志
     validate_workers: int = 4
     
     # 输出路径配置
