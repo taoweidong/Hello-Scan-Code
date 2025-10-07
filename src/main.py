@@ -1,7 +1,7 @@
 """
 Hello-Scan-Code 主程序入口
 """
-import argparse
+import click
 import logging
 import sys
 import os
@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 # 添加src目录到Python路径
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config.config_manager import ConfigManager
 from plugin.manager import PluginManager
@@ -28,41 +28,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def parse_arguments():
-    """解析命令行参数"""
-    parser = argparse.ArgumentParser(description='Hello-Scan-Code - 高性能代码扫描工具')
-    parser.add_argument(
-        '-p', '--path',
-        help='要扫描的代码仓库路径',
-        default=None
-    )
-    parser.add_argument(
-        '-c', '--config',
-        help='配置文件路径',
-        default='config.json'
-    )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='启用详细日志输出'
-    )
-    parser.add_argument(
-        '--export-excel',
-        help='导出Excel报告文件路径',
-        default=None
-    )
-    parser.add_argument(
-        '--export-html',
-        help='导出HTML报告文件路径',
-        default=None
-    )
-    parser.add_argument(
-        '--export-db',
-        action='store_true',
-        help='导出结果到数据库'
-    )
-    
-    return parser.parse_args()
 
 def setup_logging(verbose: bool = False):
     """设置日志级别"""
@@ -71,17 +36,22 @@ def setup_logging(verbose: bool = False):
     else:
         logging.getLogger().setLevel(logging.INFO)
 
-def main():
-    """主函数"""
-    # 解析命令行参数
-    args = parse_arguments()
-    
+
+@click.command()
+@click.option('-p', '--path', help='要扫描的代码仓库路径', default=None)
+@click.option('-c', '--config', help='配置文件路径', default='config.json', show_default=True)
+@click.option('-v', '--verbose', is_flag=True, help='启用详细日志输出')
+@click.option('--export-excel', help='导出Excel报告文件路径', default=None)
+@click.option('--export-html', help='导出HTML报告文件路径', default=None)
+@click.option('--export-db', is_flag=True, help='导出结果到数据库')
+def main(path, config, verbose, export_excel, export_html, export_db):
+    """Hello-Scan-Code - 高性能代码扫描工具"""
     # 设置日志
-    setup_logging(args.verbose)
+    setup_logging(verbose)
     
     try:
         # 加载配置
-        config_manager = ConfigManager(args.config)
+        config_manager = ConfigManager(config)
         logger.info("配置加载完成")
         
         # 初始化插件管理器
@@ -97,7 +67,7 @@ def main():
         
         # 执行扫描
         logger.info("开始执行代码扫描...")
-        results = scan_engine.scan(args.path)
+        results = scan_engine.scan(path)
         stats = scan_engine.get_stats()
         logger.info("代码扫描完成")
         
@@ -105,6 +75,14 @@ def main():
         logger.info(f"扫描统计: {stats}")
         
         # 导出结果
+        # 创建一个类似argparse.Namespace的对象来保持兼容性
+        class Args:
+            def __init__(self, export_excel, export_html, export_db):
+                self.export_excel = export_excel
+                self.export_html = export_html
+                self.export_db = export_db
+        
+        args = Args(export_excel, export_html, export_db)
         export_results(results, stats, args, config_manager)
         
         logger.info("程序执行完成")
@@ -114,8 +92,9 @@ def main():
         logger.error(f"程序执行出错: {e}")
         return 1
 
+
 def export_results(results: List[Dict[str, Any]], stats: Dict[str, Any], 
-                  args: argparse.Namespace, config_manager: ConfigManager):
+                  args, config_manager: ConfigManager):
     """导出扫描结果"""
     try:
         # Excel导出
@@ -157,5 +136,6 @@ def export_results(results: List[Dict[str, Any]], stats: Dict[str, Any],
     except Exception as e:
         logger.error(f"导出结果时出错: {e}")
 
+
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

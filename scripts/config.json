@@ -1,0 +1,45 @@
+{
+  "repo_path": ".",
+  "ignore_dirs": [
+    ".git",
+    "node_modules",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist"
+  ],
+  "file_extensions": [
+    ".py",
+    ".js",
+    ".java",
+    ".cpp",
+    ".c",
+    ".h",
+    ".go",
+    ".rs",
+    ".php",
+    ".cs",
+    ".ts"
+  ],
+  "plugins": {
+    "enabled": [
+      "builtin.keyword",
+      "builtin.security",
+      "builtin.todo"
+    ],
+    "dirs": [
+      "src/plugins/custom/"
+    ]
+  },
+  "output": {
+    "report_dir": "report/",
+    "export_formats": [
+      "excel",
+      "html"
+    ]
+  },
+  "scan": {
+    "timeout": 300,
+    "max_file_size": 10485760
+  }
+}

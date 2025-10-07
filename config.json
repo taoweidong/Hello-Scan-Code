@@ -1,14 +1,48 @@
 {
   "repo_path": ".",
-  "ignore_dirs": [".git", "node_modules", "venv", "__pycache__", "build", "dist", "report", "db"],
-  "file_extensions": [".py", ".js", ".java", ".cpp", ".c", ".h", ".go", ".rs", ".php", ".cs", ".ts", ".sql", ".html", ".css"],
+  "ignore_dirs": [
+    ".git",
+    "node_modules",
+    "venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "report",
+    "db"
+  ],
+  "file_extensions": [
+    ".py",
+    ".js",
+    ".java",
+    ".cpp",
+    ".c",
+    ".h",
+    ".go",
+    ".rs",
+    ".php",
+    ".cs",
+    ".ts",
+    ".sql",
+    ".html",
+    ".css"
+  ],
   "plugins": {
-    "enabled": ["builtin.keyword", "builtin.security", "builtin.todo", "builtin.regex"],
-    "dirs": ["src/plugins/custom/"]
+    "enabled": [
+      "builtin.keyword",
+      "builtin.security",
+      "builtin.todo",
+      "builtin.regex"
+    ],
+    "dirs": [
+      "src/plugins/custom/"
+    ]
   },
   "output": {
     "report_dir": "report/",
-    "export_formats": ["excel", "html"]
+    "export_formats": [
+      "excel",
+      "html"
+    ]
   },
   "scan": {
     "timeout": 300,
@@ -16,7 +50,13 @@
   },
   "plugin_configs": {
     "builtin.keyword": {
-      "keywords": ["TODO", "FIXME", "BUG", "HACK", "XXX"],
+      "keywords": [
+        "TODO",
+        "FIXME",
+        "BUG",
+        "HACK",
+        "XXX"
+      ],
       "case_sensitive": false
     },
     "builtin.regex": {

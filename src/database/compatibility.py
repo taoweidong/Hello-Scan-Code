@@ -6,13 +6,13 @@
 
 import os
 from typing import List, Dict, Any
-from .session_manager import SessionManager
-from .repositories.search_result_repository import SearchResultRepository
+from .session_manager import DatabaseSessionManager
+from .repositories import SearchResultRepository
 from .migrations.migration_service import MigrationService
 from .config import DatabaseConfig, EngineFactory
-from src.config import get_logger
+import logging
 
-logger = get_logger()
+logger = logging.getLogger(__name__)
 
 
 class DatabaseManager:
@@ -36,7 +36,7 @@ class DatabaseManager:
         self.config = DatabaseConfig(db_path=db_path)
         
         # 初始化会话管理器
-        self.session_manager = SessionManager(self.config)
+        self.session_manager = DatabaseSessionManager(self.config)
         
         # 初始化仓库
         self.search_result_repo = SearchResultRepository()

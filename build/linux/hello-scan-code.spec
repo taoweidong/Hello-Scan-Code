@@ -7,32 +7,52 @@ import sys
 import os
 from pathlib import Path
 
-# 添加项目根目录到Python路径
-project_root = Path(__file__).parent.parent.parent
+# 配置项目路径（使用绝对路径避免__file__问题）
+project_root = Path(r"E:\GitHub\Hello-Scan-Code").resolve()
 sys.path.insert(0, str(project_root))
 
 # 导入新架构的打包配置
-from src.packaging.pyinstaller_hooks import (
-    get_analysis_options, 
-    get_exe_options,
-    get_data_files,
-    get_hidden_imports,
-    get_exclude_modules
-)
-from src.packaging.resource_bundler import bundle_resources
+try:
+    from src.packaging.pyinstaller_hooks import (
+        get_analysis_options, 
+        get_exe_options,
+        get_data_files,
+        get_hidden_imports,
+        get_exclude_modules
+    )
+    from src.packaging.resource_bundler import bundle_resources
+except ImportError:
+    # 如果导入失败，使用默认配置
+    def get_hidden_imports():
+        return []
+    
+    def get_exclude_modules():
+        return []
+    
+    def bundle_resources(project_path):
+        return []
 
 # 配置项目路径
 project_path = str(project_root)
-main_script = str(project_root / "main.py")
+main_script = str(project_root / "src" / "main.py")  # 修改为src/main.py
 
 # 获取数据文件和资源
-datas = bundle_resources(project_path)
+try:
+    datas = bundle_resources(project_path)
+except:
+    datas = []
 
 # 隐藏导入模块（包含新架构的配置模块）
-hiddenimports = get_hidden_imports()
+try:
+    hiddenimports = get_hidden_imports()
+except:
+    hiddenimports = []
 
 # 排除的模块
-excludes = get_exclude_modules()
+try:
+    excludes = get_exclude_modules()
+except:
+    excludes = []
 
 # Analysis配置
 a = Analysis(

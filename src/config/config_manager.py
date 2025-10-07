@@ -99,6 +99,10 @@ class ConfigManager:
         """获取特定插件的配置"""
         return self.config.get("plugin_configs", {}).get(plugin_id, {})
     
+    def get_plugin_configs(self) -> Dict[str, Any]:
+        """获取所有插件的配置"""
+        return self.config.get("plugin_configs", {})
+    
     def set_config_value(self, key: str, value: Any):
         """设置配置值"""
         keys = key.split('.')

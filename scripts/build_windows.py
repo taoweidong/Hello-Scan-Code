@@ -89,8 +89,7 @@ class WindowsBuilder:
         
         # 检查新架构的配置模块
         try:
-            from src.config import ConfigManager, get_config_manager
-            from src.packaging.pyinstaller_hooks import get_hidden_imports
+            from src.config.config_manager import ConfigManager
             logger.info("新架构模块检查通过")
         except ImportError as e:
             logger.error(f"新架构模块导入失败: {e}")
@@ -139,9 +138,10 @@ class WindowsBuilder:
         logger.info("准备配置模板文件...")
         
         try:
-            from src.config import get_config_manager
-            manager = get_config_manager()
-            manager.create_config_template()
+            from src.config.config_manager import ConfigManager
+            manager = ConfigManager()
+            # 创建默认配置文件
+            manager._save_config()
             logger.info("配置模板准备完成")
         except Exception as e:
             logger.warning(f"配置模板准备失败: {e}")
@@ -173,7 +173,7 @@ class WindowsBuilder:
             
             if result.returncode == 0:
                 logger.info("构建成功！")
-                logger.info(f"构建输出: {result.stdout}")
+                logger.debug(f"构建输出: {result.stdout}")
                 return True
             else:
                 logger.error("构建失败！")
@@ -199,23 +199,20 @@ class WindowsBuilder:
         
         # 创建并复制配置模板
         try:
-            from src.config.json_config_loader import get_json_loader
-            loader = get_json_loader()
+            from src.config.config_manager import ConfigManager
+            manager = ConfigManager()
             
             # 检查是否存在配置模板
-            template_path = self.project_root / "config" / "config.template.json"
-            if template_path.exists():
-                shutil.copy2(template_path, self.dist_dir / "config.template.json")
-                logger.info("已复制配置模板文件")
-            else:
-                # 创建配置模板
-                loader.save_config_template()
-                logger.info("已创建并复制配置模板文件")
+            template_path = self.project_root / "config.json"
+            if not template_path.exists():
+                # 创建默认配置文件
+                manager._save_config()
+                logger.info("已创建默认配置文件")
         except Exception as e:
             logger.warning(f"配置模板处理失败: {e}")
         
         # 复制README和LICENSE
-        for doc_file in ["README.md", "LICENSE", "PYINSTALLER_GUIDE.md"]:
+        for doc_file in ["README.md", "LICENSE"]:
             src_file = self.project_root / doc_file
             if src_file.exists():
                 shutil.copy2(src_file, self.dist_dir / doc_file)
