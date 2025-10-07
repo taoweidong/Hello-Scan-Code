@@ -212,23 +212,90 @@ python test_new_architecture.py
 
 ```bash
 hello-scan-code/
+├── config/                 # 配置文件目录
+│   ├── config.template.json # 配置模板文件
+│   └── ...                  # 其他配置文件
+├── scripts/                # 构建脚本
+│   ├── build_linux.py      # Linux平台构建脚本
+│   └── build_windows.py    # Windows平台构建脚本
 ├── src/
-│   ├── __init__.py
-│   ├── config.py           # 配置文件解析
-│   ├── logger_config.py    # 日志配置
+│   ├── __init__.py         # Python包初始化文件
+│   ├── main.py             # 主程序入口
+│   ├── code_searcher.py    # 核心搜索器类
+│   ├── searcher.py         # 搜索引擎实现
 │   ├── strategies.py       # 搜索策略接口和实现（策略模式）
 │   ├── search_factory.py   # 搜索策略工厂（工厂模式）
 │   ├── search_template.py  # 搜索模板方法（模板方法模式）
 │   ├── validators.py       # 结果验证器（装饰器模式）
-│   ├── searcher.py         # 搜索引擎实现
-│   ├── database.py         # 数据库操作
+│   ├── database.py         # 数据库操作接口
 │   ├── exporter.py         # Excel 导出逻辑
-│   ├── code_searcher.py    # 核心搜索器类
-│   └── main.py             # 主程序入口
+│   ├── config/             # 配置管理模块
+│   │   ├── __init__.py     # 配置模块入口
+│   │   ├── base_config.py  # 配置基类
+│   │   ├── app_config.py   # 应用配置类
+│   │   ├── logger_config.py # 日志配置类
+│   │   ├── database_config.py # 数据库配置类
+│   │   ├── config_manager.py # 配置管理器
+│   │   ├── json_config_loader.py # JSON配置加载器
+│   │   └── json_config_adapter.py # JSON配置适配器
+│   ├── database/           # 数据库模块
+│   │   ├── __init__.py     # 数据库模块入口
+│   │   ├── session_manager.py # 数据库会话管理器
+│   │   ├── compatibility.py # 兼容性适配器
+│   │   ├── config/         # 数据库配置
+│   │   ├── migrations/     # 数据库迁移脚本
+│   │   ├── models/         # 数据库模型
+│   │   └── repositories/   # 数据库仓储
+│   └── packaging/          # 打包模块
+│       ├── __init__.py     # 打包模块入口
+│       ├── pyinstaller_hooks.py # PyInstaller钩子
+│       ├── resource_bundler.py # 资源打包器
+│       └── hooks/          # PyInstaller自定义钩子
+├── tests/                  # 测试目录
+│   ├── unit/               # 单元测试
+│   ├── integration/        # 集成测试
+│   └── ...                 # 其他测试文件
 ├── pyproject.toml          # 项目配置和依赖
 ├── README.md               # 使用说明
+├── Makefile                # 构建脚本
 └── main.py                 # 根目录入口文件
 ```
+
+## 核心模块功能说明
+
+### 配置管理模块 (src/config/)
+- **[base_config.py](file:///e:/GitHub/Hello-Scan-Code/src/config/base_config.py)**: 配置基类，定义所有配置类的通用接口
+- **[app_config.py](file:///e:/GitHub/Hello-Scan-Code/src/config/app_config.py)**: 应用配置类，管理搜索相关的配置参数
+- **[logger_config.py](file:///e:/GitHub/Hello-Scan-Code/src/config/logger_config.py)**: 日志配置类，管理日志相关的配置参数
+- **[database_config.py](file:///e:/GitHub/Hello-Scan-Code/src/config/database_config.py)**: 数据库配置类，管理数据库相关的配置参数
+- **[config_manager.py](file:///e:/GitHub/Hello-Scan-Code/src/config/config_manager.py)**: 配置管理器，统一管理所有配置实例
+- **[json_config_loader.py](file:///e:/GitHub/Hello-Scan-Code/src/config/json_config_loader.py)**: JSON配置加载器，负责加载和解析JSON配置文件
+- **[json_config_adapter.py](file:///e:/GitHub/Hello-Scan-Code/src/config/json_config_adapter.py)**: JSON配置适配器，提供JSON配置与旧配置系统的兼容性
+
+### 数据库模块 (src/database/)
+- **[session_manager.py](file:///e:/GitHub/Hello-Scan-Code/src/database/session_manager.py)**: 数据库会话管理器，管理数据库连接和会话
+- **[compatibility.py](file:///e:/GitHub/Hello-Scan-Code/src/database/compatibility.py)**: 兼容性适配器，提供新旧数据库接口的兼容性
+- **[models/](file:///e:/GitHub/Hello-Scan-Code/src/database/models/)**: 数据库模型，定义数据表结构
+- **[repositories/](file:///e:/GitHub/Hello-Scan-Code/src/database/repositories/)**: 数据库仓储，提供数据访问接口
+- **[migrations/](file:///e:/GitHub/Hello-Scan-Code/src/database/migrations/)**: 数据库迁移脚本，管理数据库版本升级
+
+### 打包模块 (src/packaging/)
+- **[pyinstaller_hooks.py](file:///e:/GitHub/Hello-Scan-Code/src/packaging/pyinstaller_hooks.py)**: PyInstaller钩子，提供打包时的依赖和资源配置
+- **[resource_bundler.py](file:///e:/GitHub/Hello-Scan-Code/src/packaging/resource_bundler.py)**: 资源打包器，负责收集和管理打包所需的资源文件
+- **[hooks/](file:///e:/GitHub/Hello-Scan-Code/src/packaging/hooks/)**: 自定义PyInstaller钩子，处理特殊模块的打包需求
+
+### 搜索核心模块
+- **[code_searcher.py](file:///e:/GitHub/Hello-Scan-Code/src/code_searcher.py)**: 核心搜索器类，协调整个搜索流程
+- **[searcher.py](file:///e:/GitHub/Hello-Scan-Code/src/searcher.py)**: 搜索引擎实现，提供基础的文件搜索功能
+- **[strategies.py](file:///e:/GitHub/Hello-Scan-Code/src/strategies.py)**: 搜索策略接口和实现，支持多种搜索算法（grep、python等）
+- **[search_factory.py](file:///e:/GitHub/Hello-Scan-Code/src/search_factory.py)**: 搜索策略工厂，根据配置创建相应的搜索策略
+- **[search_template.py](file:///e:/GitHub/Hello-Scan-Code/src/search_template.py)**: 搜索模板方法，定义搜索流程的通用模板
+- **[validators.py](file:///e:/GitHub/Hello-Scan-Code/src/validators.py)**: 结果验证器，提供搜索结果的验证功能
+
+### 其他核心文件
+- **[database.py](file:///e:/GitHub/Hello-Scan-Code/src/database.py)**: 数据库操作接口，提供简化的数据库操作方法
+- **[exporter.py](file:///e:/GitHub/Hello-Scan-Code/src/exporter.py)**: Excel导出逻辑，负责将搜索结果导出到Excel文件
+- **[main.py](file:///e:/GitHub/Hello-Scan-Code/src/main.py)**: 主程序入口，程序启动和执行的起点
 
 ## 项目初始化
 
@@ -239,17 +306,17 @@ git clone https://github.com/taoweidong/Hello-Scan-Code.git
 cd Hello-Scan-Code
 ```
 
-1. **安装依赖**
+2. **安装依赖**
 
 ```bash
-# 使用 uv（推荐）
-uv sync
+# 使用 pip
+pip install -r requirements.txt
 
-# 或使用 pip
-pip install loguru pandas openpyxl
+# 或安装特定依赖
+pip install loguru pandas openpyxl sqlalchemy alembic pyinstaller
 ```
 
-1. **创建输出目录**
+3. **创建输出目录**
 
 ```bash
 mkdir -p db report logs
@@ -259,22 +326,29 @@ mkdir -p db report logs
 
 1. **配置搜索参数**
 
-在 `src/main.py` 中修改配置：
+创建并编辑配置文件：
+```bash
+cp config/config.template.json config.json
+vim config.json
+```
 
+或在代码中直接修改配置：
 ```python
+# 在 main.py 中修改配置
+config = AppConfig()
 config.repo_path = "/path/to/your/code/repository"  # 代码仓库路径
 config.search_term = "keyword1,keyword2,keyword3"   # 搜索关键字
 config.ignore_dirs = [".git", "node_modules"]       # 忽略目录
 config.file_extensions = [".py", ".js", ".go"]      # 文件类型
 ```
 
-1. **运行搜索**
+2. **运行搜索**
 
    ```bash
    python main.py
    ```
 
-1. **查看结果**
+3. **查看结果**
    - SQLite 数据库：`db/results.db`
    - Excel 文件：`report/results.xlsx`
    - 日志文件：`logs/` 目录
@@ -288,6 +362,8 @@ config.file_extensions = [".py", ".js", ".go"]      # 文件类型
 | `repo_path` | 代码仓库路径 | `/root/CodeRootPath` |
 | `search_term` | 搜索关键字（逗号分隔） | `test,def,void` |
 | `is_regex` | 是否使用正则表达式 | `False` |
+| `validate` | 是否启用结果验证 | `False` |
+| `validate_workers` | 验证工作线程数 | `4` |
 | `ignore_dirs` | 忽略的目录列表 | `[".git", "__pycache__", "node_modules"]` |
 | `file_extensions` | 文件后缀过滤 | `None`（不限制） |
 | `db_path` | SQLite 输出路径 | `db/results.db` |
@@ -295,7 +371,10 @@ config.file_extensions = [".py", ".js", ".go"]      # 文件类型
 
 ## 技术特点
 
-- **面向对象设计**：采用策略模式、工厂模式等设计模式
+- **面向对象设计**：采用策略模式、工厂模式、模板方法模式等设计模式
 - **高效搜索**：优先使用 `grep`，自动降级到 Python 实现
 - **智能编码**：自动处理多种文件编码格式
 - **结果导出**：支持 SQLite 和 Excel 双重输出
+- **模块化架构**：高度模块化设计，易于扩展和维护
+- **配置灵活**：支持JSON配置文件和环境变量配置
+- **完整测试**：包含单元测试和集成测试
