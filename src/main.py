@@ -29,14 +29,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def setup_logging(verbose: bool = False):
-    """设置日志级别"""
-    if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
-
-
 @click.command()
 @click.option('-p', '--path', help='要扫描的代码仓库路径', default=None)
 @click.option('-c', '--config', help='配置文件路径', default='config.json', show_default=True)
@@ -53,13 +45,45 @@ def main(path, config, verbose, export_excel, export_html, export_db):
         # 加载配置
         config_manager = ConfigManager(config)
         logger.info("配置加载完成")
+        logger.debug(f"配置内容: {config_manager.config}")
+        logger.debug(f"启用插件列表: {config_manager.get_enabled_plugins()}")
+        logger.debug(f"插件目录列表: {config_manager.get_plugin_dirs()}")
         
         # 初始化插件管理器
         plugin_manager = PluginManager(config_manager)
-        if not plugin_manager.initialize():
+        logger.debug(f"主程序中插件管理器ID: {id(plugin_manager)}")
+        init_result = plugin_manager.initialize()
+        logger.debug(f"插件管理器初始化结果: {init_result}")
+        
+        # 检查注册表中的插件
+        registry_plugins = plugin_manager.registry.get_all_plugins()
+        logger.debug(f"注册表中的插件数量: {len(registry_plugins)}")
+        if registry_plugins:
+            logger.debug("注册表中的插件:")
+            for plugin in registry_plugins:
+                logger.debug(f"  - {plugin.plugin_id}: {plugin.name}")
+        
+        # 检查启用的插件
+        enabled_plugins = plugin_manager.get_enabled_plugins()
+        logger.debug(f"启用的插件数量: {len(enabled_plugins)}")
+        if enabled_plugins:
+            logger.debug("启用的插件:")
+            for plugin in enabled_plugins:
+                logger.debug(f"  - {plugin.plugin_id}: {plugin.name}")
+        
+        if not init_result:
             logger.error("插件管理器初始化失败")
             return 1
-        logger.info("插件管理器初始化完成")
+            
+        logger.info(f"插件管理器初始化完成，加载了 {len(enabled_plugins)} 个插件")
+        
+        # 显示加载的插件
+        if enabled_plugins:
+            logger.info("已加载的插件:")
+            for plugin in enabled_plugins:
+                logger.info(f"  - {plugin.plugin_id}: {plugin.name}")
+        else:
+            logger.warning("没有加载任何插件")
         
         # 创建扫描引擎
         scan_engine = OptimizedScanEngine(config_manager, plugin_manager)
@@ -135,6 +159,14 @@ def export_results(results: List[Dict[str, Any]], stats: Dict[str, Any],
             
     except Exception as e:
         logger.error(f"导出结果时出错: {e}")
+
+
+def setup_logging(verbose: bool = False):
+    """设置日志级别"""
+    if verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
 
 
 if __name__ == "__main__":

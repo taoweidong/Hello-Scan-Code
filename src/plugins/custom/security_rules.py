@@ -3,86 +3,112 @@
 安全相关扫描规则
 """
 
-from typing import List
-from ...plugin import IScanRule, ScanResult
-from ...plugins import register_plugin
+from typing import List, Dict, Any
+from src.plugin.base import IScanPlugin, ScanContext, ScanResult, SeverityLevel
 import re
 
 
-@register_plugin
-class HardcodedPasswordRule(IScanRule):
+class HardcodedPasswordRule(IScanPlugin):
     """硬编码密码检测规则"""
     
     @property
-    def rule_id(self) -> str:
-        return "SECURITY_001"
+    def plugin_id(self) -> str:
+        return "security.hardcoded_password"
     
     @property
     def name(self) -> str:
         return "Hardcoded Password"
     
     @property
-    def severity(self) -> str:
-        return "ERROR"
+    def version(self) -> str:
+        return "1.0.0"
+    
+    @property
+    def description(self) -> str:
+        return "检测代码中的硬编码密码"
+    
+    @property
+    def author(self) -> str:
+        return "Hello-Scan-Code Team"
 
-    def supports_extensions(self) -> List[str]:
+    def get_supported_extensions(self) -> List[str]:
         return [".py", ".js", ".java", ".go", ".cpp", ".c", ".h", ".hpp", ".cs", ".php", ".rb", ".swift", ".yaml", ".yml"]
 
-    def grep_pattern(self) -> str:
-        # 筛选可能包含密码的赋值语句
-        return r'(password|passwd|pwd|token|secret).*=.*["\'].*["\']'
+    def get_grep_pattern(self) -> str:
+        # 使用更简单的grep模式，只匹配password关键字
+        return r"password"
 
-    def analyze(self, file_path: str, line_no: int, line: str, context: dict) -> List[ScanResult]:
+    def initialize(self, config: Dict[str, Any]) -> bool:
+        return True
+
+    def scan_line(self, file_path: str, line_number: int, line_content: str, context: ScanContext) -> List[ScanResult]:
         # 进一步分析字符串内容是否为常见弱密码
-        match = re.search(r'=\s*["\']([^"\']+)["\']', line, re.I)
-        if match:
-            value = match.group(1)
-            if len(value) < 6 or value.lower() in ['123456', 'password', 'admin', 'root', 'guest']:
-                return [ScanResult(
-                    file_path=file_path,
-                    line_number=line_no,
-                    content=line.strip(),
-                    rule_id=self.rule_id,
-                    severity=self.severity,
-                    message="Hardcoded weak password detected"
-                )]
+        # 检查是否包含密码赋值语句
+        if re.search(r'(password|passwd|pwd|token|secret)\s*=\s*["\'][^"\']*["\']', line_content, re.I):
+            match = re.search(r'=\s*["\']([^"\']+)["\']', line_content, re.I)
+            if match:
+                value = match.group(1)
+                if len(value) < 6 or value.lower() in ['123456', 'password', 'admin', 'root', 'guest']:
+                    return [ScanResult(
+                        plugin_id=self.plugin_id,
+                        file_path=file_path,
+                        line_number=line_number,
+                        code_snippet=line_content.strip(),
+                        rule_id="SECURITY_001",
+                        severity=SeverityLevel.CRITICAL,
+                        message="Hardcoded weak password detected",
+                        category="security"
+                    )]
         return []
 
 
-@register_plugin
-class WeakCryptographicAlgorithmRule(IScanRule):
+class WeakCryptographicAlgorithmRule(IScanPlugin):
     """弱加密算法检测规则"""
     
     @property
-    def rule_id(self) -> str:
-        return "SECURITY_002"
+    def plugin_id(self) -> str:
+        return "security.weak_crypto"
     
     @property
     def name(self) -> str:
         return "Weak Cryptographic Algorithm"
     
     @property
-    def severity(self) -> str:
-        return "WARN"
+    def version(self) -> str:
+        return "1.0.0"
+    
+    @property
+    def description(self) -> str:
+        return "检测代码中的弱加密算法"
+    
+    @property
+    def author(self) -> str:
+        return "Hello-Scan-Code Team"
 
-    def supports_extensions(self) -> List[str]:
+    def get_supported_extensions(self) -> List[str]:
         return [".py", ".js", ".java", ".go", ".cpp", ".c", ".h", ".hpp", ".cs", ".php", ".rb", ".swift"]
 
-    def grep_pattern(self) -> str:
-        # 筛选可能使用弱加密算法的代码
-        return r'(MD5|SHA1|DES|RC4)'
+    def get_grep_pattern(self) -> str:
+        # 使用更简单的grep模式
+        return r"MD5|SHA1|DES|RC4"
 
-    def analyze(self, file_path: str, line_no: int, line: str, context: dict) -> List[ScanResult]:
+    def initialize(self, config: Dict[str, Any]) -> bool:
+        return True
+
+    def scan_line(self, file_path: str, line_number: int, line_content: str, context: ScanContext) -> List[ScanResult]:
         # 检查是否真的在使用弱加密算法
         weak_algorithms = ['MD5', 'SHA1', 'DES', 'RC4']
+        results = []
         for algorithm in weak_algorithms:
-            if algorithm in line and not any(ignore in line for ignore in ['comment', 'note', 'todo']):
-                return [ScanResult(
+            if algorithm in line_content and not any(ignore in line_content for ignore in ['comment', 'note', 'todo']):
+                results.append(ScanResult(
+                    plugin_id=self.plugin_id,
                     file_path=file_path,
-                    line_number=line_no,
-                    content=line.strip(),
-                    rule_id=self.rule_id,
-                    severity=self.severity,
-                    message=f"Weak cryptographic algorithm {algorithm} detected"
-                )]
-        return []
+                    line_number=line_number,
+                    code_snippet=line_content.strip(),
+                    rule_id="SECURITY_002",
+                    severity=SeverityLevel.HIGH,
+                    message=f"Weak cryptographic algorithm {algorithm} detected",
+                    category="security"
+                ))
+        return results

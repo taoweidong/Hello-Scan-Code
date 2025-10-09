@@ -30,7 +30,10 @@ class TestCustomSecurityRules(unittest.TestCase):
         try:
             from src.plugins.custom.security_rules import HardcodedPasswordRule
             rule = HardcodedPasswordRule()
-            self.assertTrue(hasattr(rule, 'rule_id'))
+            # 检查属性是否存在
+            self.assertTrue(hasattr(rule, 'plugin_id'))
+            self.assertTrue(hasattr(rule, 'name'))
+            self.assertTrue(hasattr(rule, 'version'))
         except ImportError:
             self.skipTest("安全规则模块不存在或有导入问题")
 
@@ -39,7 +42,10 @@ class TestCustomSecurityRules(unittest.TestCase):
         try:
             from src.plugins.custom.security_rules import WeakCryptographicAlgorithmRule
             rule = WeakCryptographicAlgorithmRule()
-            self.assertTrue(hasattr(rule, 'rule_id'))
+            # 检查属性是否存在
+            self.assertTrue(hasattr(rule, 'plugin_id'))
+            self.assertTrue(hasattr(rule, 'name'))
+            self.assertTrue(hasattr(rule, 'version'))
         except ImportError:
             self.skipTest("安全规则模块不存在或有导入问题")
 

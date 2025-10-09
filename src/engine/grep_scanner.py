@@ -13,14 +13,14 @@ logger = logging.getLogger(__name__)
 class GrepScanner:
     """Grep预扫描器"""
     
-    def __init__(self, repo_path: str, ignore_dirs: List[str] = None, 
+    def __init__(self, repo_path: str, ignore_dirs: Optional[List[str]] = None, 
                  timeout: int = 300):
         self.repo_path = Path(repo_path).resolve()
         self.ignore_dirs = ignore_dirs or []
         self.timeout = timeout
         self.is_windows = platform.system() == "Windows"
         
-    def scan(self, pattern: str, file_extensions: List[str] = None) -> Generator[Tuple[str, int, str], None, None]:
+    def scan(self, pattern: str, file_extensions: Optional[List[str]] = None) -> Generator[Tuple[str, int, str], None, None]:
         """
         执行grep扫描
         
@@ -36,7 +36,7 @@ class GrepScanner:
         else:
             yield from self._scan_unix(pattern, file_extensions)
     
-    def _scan_unix(self, pattern: str, file_extensions: List[str]) -> Generator[Tuple[str, int, str], None, None]:
+    def _scan_unix(self, pattern: str, file_extensions: Optional[List[str]]) -> Generator[Tuple[str, int, str], None, None]:
         """Unix系统grep扫描"""
         try:
             cmd = [
@@ -69,26 +69,27 @@ class GrepScanner:
                 universal_newlines=True
             )
             
-            try:
-                for line in process.stdout:
-                    line = line.strip()
-                    if not line:
-                        continue
+            if process.stdout is not None:
+                try:
+                    for line in process.stdout:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        # 解析grep输出格式: path:line:content
+                        parts = line.split(':', 2)
+                        if len(parts) == 3:
+                            file_path, line_no, content = parts
+                            # 转换为相对路径
+                            rel_path = os.path.relpath(file_path, self.repo_path)
+                            yield rel_path, int(line_no), content
+                        
+                    # 等待进程完成
+                    process.wait(timeout=self.timeout)
                     
-                    # 解析grep输出格式: path:line:content
-                    parts = line.split(':', 2)
-                    if len(parts) == 3:
-                        file_path, line_no, content = parts
-                        # 转换为相对路径
-                        rel_path = os.path.relpath(file_path, self.repo_path)
-                        yield rel_path, int(line_no), content
-                    
-                # 等待进程完成
-                process.wait(timeout=self.timeout)
-                
-            except subprocess.TimeoutExpired:
-                logger.warning("Grep扫描超时")
-                process.terminate()
+                except subprocess.TimeoutExpired:
+                    logger.warning("Grep扫描超时")
+                    process.terminate()
                 
         except FileNotFoundError:
             logger.error("系统中未找到grep命令")
@@ -97,7 +98,7 @@ class GrepScanner:
             logger.error(f"Grep扫描失败: {e}")
             raise
     
-    def _scan_windows(self, pattern: str, file_extensions: List[str]) -> Generator[Tuple[str, int, str], None, None]:
+    def _scan_windows(self, pattern: str, file_extensions: Optional[List[str]]) -> Generator[Tuple[str, int, str], None, None]:
         """Windows系统扫描（使用findstr）"""
         try:
             # Windows使用findstr命令
@@ -109,13 +110,17 @@ class GrepScanner:
                 pattern
             ]
             
-            # 构建搜索路径
-            search_path = str(self.repo_path)
+            # 构建搜索路径和文件模式
             if file_extensions:
-                # Windows不支持像grep那样的include，这里简化处理
-                pass
+                # 为每个文件扩展名创建搜索模式
+                file_patterns = [f"*{ext}" for ext in file_extensions]
+                # 将文件模式添加到命令中
+                cmd.extend(file_patterns)
+            else:
+                # 如果没有指定扩展名，搜索所有文件
+                cmd.append("*.*")
             
-            cmd.append(search_path)
+            cmd.append(str(self.repo_path))
             
             logger.debug(f"执行findstr命令: {' '.join(cmd)}")
             
@@ -126,39 +131,43 @@ class GrepScanner:
                 text=True,
                 bufsize=1,
                 universal_newlines=True,
-                shell=True  # Windows需要shell
+                shell=True,  # Windows需要shell
+                cwd=str(self.repo_path)  # 设置工作目录
             )
             
-            try:
-                for line in process.stdout:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    
-                    # 解析findstr输出格式: path(line): content
-                    if '(' in line and ')' in line:
-                        file_part, content = line.split(')', 1)
-                        if '(' in file_part:
-                            file_path, line_no = file_part.split('(')
-                            file_path = file_path.strip()
-                            line_no = line_no.strip()
-                            
+            if process.stdout is not None:
+                try:
+                    for line in process.stdout:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        
+                        # 解析findstr输出格式: path:line:content
+                        # 例如: test_security.py:1:password = "123456"
+                        logger.debug(f"Findstr输出行: {line}")
+                        parts = line.split(':', 2)
+                        if len(parts) == 3:
+                            file_path, line_no, content = parts
                             # 转换为相对路径
-                            rel_path = os.path.relpath(file_path, self.repo_path)
-                            yield rel_path, int(line_no), content.strip()
+                            try:
+                                full_path = Path(self.repo_path) / file_path
+                                rel_path = os.path.relpath(full_path, self.repo_path)
+                                yield rel_path, int(line_no), content
+                            except Exception as e:
+                                logger.debug(f"解析路径失败: {e}")
                 
-                process.wait(timeout=self.timeout)
-                
-            except subprocess.TimeoutExpired:
-                logger.warning("Findstr扫描超时")
-                process.terminate()
+                    process.wait(timeout=self.timeout)
+                    
+                except subprocess.TimeoutExpired:
+                    logger.warning("Findstr扫描超时")
+                    process.terminate()
                 
         except Exception as e:
             logger.error(f"Windows扫描失败: {e}")
             # 回退到Python实现
             yield from self._fallback_scan(pattern, file_extensions)
     
-    def _fallback_scan(self, pattern: str, file_extensions: List[str]) -> Generator[Tuple[str, int, str], None, None]:
+    def _fallback_scan(self, pattern: str, file_extensions: Optional[List[str]]) -> Generator[Tuple[str, int, str], None, None]:
         """回退的Python实现扫描"""
         import re
         

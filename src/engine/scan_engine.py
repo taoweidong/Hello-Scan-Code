@@ -8,9 +8,8 @@ import logging
 from pathlib import Path
 
 from .grep_scanner import GrepScanner
-# 注释掉暂时无法解析的导入
-# from ..plugin.manager import PluginManager
-# from ..plugin.base import IScanPlugin, ScanContext, ScanResult
+from src.plugin.manager import PluginManager
+from src.plugin.base import IScanPlugin, ScanContext, ScanResult
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +19,7 @@ class OptimizedScanEngine:
     def __init__(self, config_manager, plugin_manager):
         self.config_manager = config_manager
         self.plugin_manager = plugin_manager
+        logger.debug(f"扫描引擎初始化，插件管理器ID: {id(plugin_manager)}")
         self.grep_scanner: Optional[GrepScanner] = None
         self.stats = {
             'total_files': 0,
@@ -52,11 +52,25 @@ class OptimizedScanEngine:
         ignore_dirs = self.config_manager.get_ignore_dirs()
         file_extensions = self.config_manager.get_file_extensions()
         
+        # 计算总文件数
+        file_list = list(self._walk_files(repo_path, file_extensions))
+        self.stats['total_files'] = len(file_list)
+        logger.debug(f"总文件数: {self.stats['total_files']}")
+        
         # 初始化扫描器
         self.grep_scanner = GrepScanner(str(repo_path), ignore_dirs)
         
         # 获取启用的插件
         enabled_plugins = self.plugin_manager.get_enabled_plugins()
+        logger.debug(f"扫描引擎中获取到的插件数量: {len(enabled_plugins)}")
+        logger.debug(f"扫描引擎中插件管理器ID: {id(self.plugin_manager)}")
+        if enabled_plugins:
+            logger.debug("扫描引擎中的插件:")
+            for plugin in enabled_plugins:
+                logger.debug(f"  - {plugin.plugin_id}: {plugin.name}")
+        else:
+            logger.debug("扫描引擎中没有获取到任何插件")
+        
         self.stats['total_plugins'] = len(enabled_plugins)
         
         logger.info(f"开始扫描仓库: {repo_path}")
@@ -116,10 +130,13 @@ class OptimizedScanEngine:
                 grep_stream = self.grep_scanner.scan(pattern, file_extensions)
                 
                 # 创建扫描上下文
-                context = {"repo_path": repo_path}
+                context = ScanContext(repo_path=repo_path)
                 
                 # 处理grep结果
+                match_count = 0
                 for file_path, line_no, line_content in grep_stream:
+                    match_count += 1
+                    logger.debug(f"Grep匹配: {file_path}:{line_no}: {line_content}")
                     # 对每个匹配的行执行插件分析
                     for plugin in plugins:
                         # 检查文件类型支持
@@ -134,7 +151,11 @@ class OptimizedScanEngine:
                             plugin_results = plugin.scan_line(
                                 file_path, line_no, line_content, context
                             )
+                            if plugin_results:
+                                logger.debug(f"插件 {plugin.plugin_id} 发现问题: {len(plugin_results)} 个")
                             results.extend(plugin_results)
+                
+                logger.debug(f"Grep模式 '{pattern}' 找到 {match_count} 个匹配")
                     
         except Exception as e:
             logger.error(f"Grep扫描失败: {e}")
@@ -145,11 +166,12 @@ class OptimizedScanEngine:
                       file_extensions: List[str]) -> List[Dict[str, Any]]:
         """全量扫描回退方案"""
         results = []
-        context = {"repo_path": repo_path}
+        context = ScanContext(repo_path=repo_path)
         
         # 遍历所有文件
         for file_path in self._walk_files(repo_path, file_extensions):
             try:
+                self.stats['scanned_files'] += 1
                 file_ext = Path(file_path).suffix
                 full_path = Path(repo_path) / file_path
                 
@@ -176,7 +198,7 @@ class OptimizedScanEngine:
     def _walk_files(self, repo_path: str, file_extensions: List[str]):
         """遍历代码文件"""
         repo_path_obj = Path(repo_path)
-        ignore_dirs = []  # 这里应该从配置中获取忽略目录
+        ignore_dirs = self.config_manager.get_ignore_dirs()  # 从配置中获取忽略目录
         
         for item in repo_path_obj.rglob('*'):
             if item.is_file():

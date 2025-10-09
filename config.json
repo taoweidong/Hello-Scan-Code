@@ -31,7 +31,9 @@
       "builtin.keyword",
       "builtin.security",
       "builtin.todo",
-      "builtin.regex"
+      "builtin.regex",
+      "security.hardcoded_password",
+      "security.weak_crypto"
     ],
     "dirs": [
       "src/plugins/custom/"
